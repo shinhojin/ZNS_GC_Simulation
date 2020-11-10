@@ -50,6 +50,7 @@ void ZNS_Simulation::init_block_bitmap() {
         //cls = dis(mersenne);
         cls = rand();
         Block_bitmap[i].set_block_info(i);
+        
         if (cls % 3 == 0) {
             Block_bitmap[i].set_data(0);
             count[0]++;
