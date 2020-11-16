@@ -49,8 +49,7 @@ void ZNS_Simulation::init_block_bitmap() {
     for(int i=0; i<total_block_count; i++) {
         //cls = dis(mersenne);
         cls = rand();
-        Block_bitmap[i].set_block_info(i);
-        
+        Block_bitmap[i].set_block_info(i);        
         if (cls % 3 == 0) {
             Block_bitmap[i].set_data(0);
             count[0]++;
@@ -132,15 +131,155 @@ int ZNS_Simulation::write_data() {
     */
 }
 
-int ZNS_Simulation::read_data() {
+int ZNS_Simulation::read_valid_data(int i_block_offset) { 
+    int index = i_block_offset;
+    int read_count = 0;
+
+    while(1) {
+        cout << Block_bitmap[index].get_data() << endl;
+        if (Block_bitmap[index].get_data() == VALID_DATA) {
+            read_count++;
+            index++;
+        } else break;
+ 
+        if (read_count == 32) break; // Max IO size 128KB (4KB * 32)
+    } 
+
     cout<< "read data in func" <<endl;
-    return 0;
+
+    return read_count;
 }
 
 int ZNS_Simulation::basic_zgc() {
-    
     cout<< "Start Basic ZGC" <<endl;
     
+    //SIM_Zone * Zone_ctl = new SIM_Zone[Zone_count];
+
+    int i_zone, i_segment, i_block;
+
+    int collection_invalid_count = 0;
+    int i_bitmap_current;
+    int read_valid_count;
+    int io_result = 0;
+
+    int i_zone_start_block, i_zone_end_block;
+
+    Block_data * buffer_128KB_read = (Block_data *)malloc(512 * 8 * 32);
+    Block_data * buffer_128KB_write = (Block_data *)malloc(512 * 8 * 32);
+
+    memset(buffer_128KB_read, 0, 512 * 8 * 32);
+    memset(buffer_128KB_write, 0, 512 * 8 * 32);
+
+    int offset_write_zone = 0;
+    int i_current_write_buffer = 0; //Max 32
+
+    int buffer_write_temp_offset;
+    int remain_read_offset;
+
+    cout << "through here 1" << endl;
+
+    for(i_zone = 0; i_zone < Zone_count; i_zone++) {
+        cout << "through here 2" << endl;
+        i_zone_start_block = Zone_bitmap[i_zone].get_i_start_block();
+        i_zone_end_block = Zone_bitmap[i_zone].get_i_start_block() + SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT;
+
+        if(Zone_bitmap[i_zone].get_valid_blocks(Segment_bitmap, Block_bitmap) == 0) continue;
+        
+        cout << "through here 3" << endl;
+
+        for(i_bitmap_current = i_zone_start_block; i_bitmap_current <= i_zone_end_block; ) {
+            cout << "through here loop" << endl;
+            if (Block_bitmap[i_bitmap_current].get_data() == INVALID_DATA) {
+                collection_invalid_count++;
+                i_bitmap_current++;
+                cout << collection_invalid_count << " " << i_bitmap_current << endl;
+                continue;
+            }
+        
+            read_valid_count = read_valid_data(i_bitmap_current);
+            cout << read_valid_count << endl;
+            
+            if (read_valid_count == 0) {
+                i_bitmap_current++;
+                continue;
+            } 
+
+            // How to pick ZNS SSD Zone number ??
+            io_result = m2_zns_read(zns_info_list, buffer_128KB_read, 512 * 8 * read_valid_count, 
+                i_zone, (i_bitmap_current - 512 * 512 * i_zone) * 8);
+            cout << io_result << endl;
+            if(io_result == 0) {
+                cout << "through here read success" << endl;
+                i_bitmap_current += read_valid_count;
+            } else {
+                cout << "goto Basic_GC_end" << endl;
+                cout << "read_count : " << read_valid_count << endl;
+                cout << "IO result : " << io_result << endl;
+                goto Basic_GC_end;
+            }
+
+            // Buffer write (write before fill 128KB )
+            // How to pick ZNS SSD Zone write
+            if( (i_current_write_buffer + read_valid_count) < 32 ) { //check 128KB
+                cout << "through here 4" << endl;
+                memcpy(&buffer_128KB_write[i_current_write_buffer], buffer_128KB_read, 512 * 8 * read_valid_count);
+                i_current_write_buffer += read_valid_count;
+            } else {
+                if((i_current_write_buffer + read_valid_count) == 32) { //128KB write
+                    cout << "through here 5" << endl;
+                    memcpy(&buffer_128KB_write[i_current_write_buffer], buffer_128KB_read, 512 * 8 * read_valid_count);
+                    io_result = m2_zns_write(zns_info_list, buffer_128KB_write, 512 * 8 * 32, i_zone, offset_write_zone * 8);
+                    if(io_result == 0) {
+                        offset_write_zone += 32;
+                        i_current_write_buffer = 0;
+                    } else {
+                        cout << "write IO result : " << io_result << endl;
+                    }
+                } else {
+                    remain_read_offset = i_current_write_buffer + read_valid_count - 32;
+                    memcpy(&buffer_128KB_write[i_current_write_buffer], buffer_128KB_read, 512 * 8 * (read_valid_count-remain_read_offset));
+                    io_result = m2_zns_write(zns_info_list, buffer_128KB_write, 512 * 8 * 32, i_zone, offset_write_zone * 8);
+                    if(io_result == 0) {
+                        offset_write_zone += 32;
+                        i_current_write_buffer = 0;
+                    } else {
+                        cout << "write IO result : " << io_result << endl;
+                    }
+
+                    memcpy(&buffer_128KB_write[i_current_write_buffer], &buffer_128KB_read[read_valid_count-remain_read_offset],
+                        512 * 8 * remain_read_offset);
+                    i_current_write_buffer += remain_read_offset;
+                }
+            }
+
+            if( offset_write_zone  == (512 * 512)) {
+                cout << "through here 6" << endl;
+                m2_zns_zone_finish(zns_info_list, i_zone);
+                i_zone++;
+                offset_write_zone = 0;
+                cout << "write zone : " << i_zone << endl;
+            }
+
+            if(collection_invalid_count >= (512 * 512)) {
+                cout << "through here 7" << endl;
+                if(i_current_write_buffer != 0) {
+                    io_result = m2_zns_write(zns_info_list, buffer_128KB_write, 512 * 8 * i_current_write_buffer,
+                        i_zone, offset_write_zone * 8);
+                }
+                goto Basic_GC_end;
+            }
+        } // end of Block in Zone
+        
+        m2_zns_zone_reset(zns_info_list, i_zone);
+        Zone_bitmap[i_zone].reset_valid_blocks();
+    } // end of Zone
+
+
+
+
+
+
+    /*
     if(workload_list->size() == 0) {
         cout<< "Workload empty" <<endl;
         return -1;
@@ -151,10 +290,11 @@ int ZNS_Simulation::basic_zgc() {
         cout<< (*iter)->get_SN() << ", " << (*iter)->get_start_lba() <<endl;
         //(*iter)->print_workload_data();
     }
+    */
 
-
-
-
+Basic_GC_end: 
+    printf("Basic GC End\n");
+    
     return 0;
 }
 

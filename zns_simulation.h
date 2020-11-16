@@ -17,7 +17,7 @@
 #include <iostream>
 
 //In Simulation, Set hardware zone spec
-#define ZONE_MAX_COUNT 530
+#define M2_ZONE_MAX_COUNT 530
 
 //In Simulation, Set default IO size : 4KB = 512 * 8
 #define SIM_BLOCK_IO_DEFAULT 8
@@ -40,6 +40,10 @@
 #define FREE_SEGMENT 2
 
 using namespace std;
+
+class Block_data {
+    char data[4096];
+};
 
 class ZNS_Simulation {
     //ZNS SSD init variable
@@ -73,7 +77,7 @@ public :
     int execute_workload_line();
     
     int write_data();
-    int read_data();
+    int read_valid_data(int i_block);
     int basic_zgc();
     int lsm_zgc();
 
