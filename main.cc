@@ -19,7 +19,7 @@ int main(int argc, char * argv[]) {
     if(argc != ARGUMENT_COUNT) {
         cout<< "Please, set argument\n" <<endl;
         cout<< "---> sudo ./Simulation {DEV_NAME} {SETTING_ZONE_COUNT} {SETTING_WORKLOAD_FILE}" <<endl;
-        cout<< "---> example : sudo ./Simulation /dev/nvme0n1 512 ./test_data/Entries_100000.txt" <<endl;
+        cout<< "---> example : sudo ./Simulation /dev/nvme0n1 530 ./test_data/Entries_100000.txt" <<endl;
     }
     
     //Print Setting Argument List
@@ -48,10 +48,10 @@ int main(int argc, char * argv[]) {
     cout<< "3. Start Workload Simualtion in memory" <<endl;
     cout<< "------------------------------------------------------" <<endl;
         //Simulation Random workload Test (not realworkload)
-        zns_simulation->setting_random_bitmap();
-        zns_simulation->print_segment_block_bitmap(0);
+        //zns_simulation->setting_random_bitmap();
+        //zns_simulation->print_segment_block_bitmap(0);
         //zns_simulation->print_zone_block_bitmap(0);
-        zns_simulation->print_zone_segment_bitmap(0);
+        //zns_simulation->print_zone_segment_bitmap(0);
         
 
     cout<< "------------------------------------------------------" <<endl<<endl;
@@ -59,7 +59,7 @@ int main(int argc, char * argv[]) {
     //4. Start GC Simulation in ZNS SSD
     cout<< "4. Start GC Simulation in ZNS SSD" <<endl;
     cout<< "------------------------------------------------------" <<endl;
-        //zns_simulation->basic_zgc();
+        zns_simulation->basic_zgc();
         //zns_simulation->lsm_zgc();
     cout<< "------------------------------------------------------" <<endl<<endl;
 
