@@ -5,6 +5,7 @@
 */
 
 #include "zns_simulation_datastructure.h"
+#include "zns_simulation.h"
 
 using namespace std;
 
@@ -25,11 +26,36 @@ float SIM_Zone::get_utilization() {
     return utilization;
 }
 
+int SIM_Zone::get_valid_blocks(SIM_Segment * Segment_ctl, SIM_Block * Block_ctl) {
+    //int valid_block_count = 0;
+    int start_i_block, end_i_block;
+    
+    for(int segment_num = 0; segment_num < SEGMENT_COUNT_IN_ZONE; segment_num++) {
+        /*
+        if (Segment_ctl[segment_num].get_status() == VALID_BLOCK)
+            valid_block_count++;
+        */
+        start_i_block = Segment_ctl[segment_num].get_i_start_block();
+        end_i_block = start_i_block + BLOCK_COUNT_IN_SEGMENT;
+        for(int block_num = start_i_block; block_num < end_i_block; block_num++) {
+            if (Block_ctl[block_num].get_data() == VALID_DATA)
+                valid_block_count++;
+        }
+        
+    }
+    return valid_block_count;
+}
+
+void SIM_Zone::reset_valid_blocks() {
+    valid_block_count = 0;
+}
+
 void SIM_Zone::set_zone_info(int i_zone, int i_start_segment, int i_start_block) {
         this->i_zone = i_zone;
         this->i_start_segment = i_start_segment;
         this->i_start_block = i_start_block;
         this->utilization = 0;
+        valid_block_count = 0;
 }
 
 void SIM_Zone::print_zone_info() {
@@ -100,4 +126,3 @@ int SIM_Block::get_data() {
 int SIM_Block::set_data(int data) {
     this->data = data;
 }
-

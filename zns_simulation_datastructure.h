@@ -22,43 +22,6 @@
 
 using namespace std;
 
-//Zone
-class SIM_Zone {
-    int i_zone;
-    int i_start_segment;
-    int i_start_block;
-    float utilization;
-    int vaild_block_count;
-
-public :
-    SIM_Zone() {};
-    void set_zone_info(int _i_zone, int _i_start_segment, int _i_start_block);
-    void print_zone_info();
-
-    int get_i_zone();
-    int get_i_start_segment();
-    int get_i_start_block();
-    float get_utilization();
-};
-
-//Segment
-class SIM_Segment {
-    int i_segment;
-    int i_start_block;
-    int status;
-    int vaild_block_count;
-
-public :
-    SIM_Segment() {};
-    void set_segment_info(int i_segment, int i_start_block, int status);
-    void print_segment_info();
-    void print_status();
-    int get_i_segment();
-    int get_i_start_block();
-    int get_status();
-    int set_status(int status);
-};
-
 //Block
 class SIM_Block {
     int i_block;
@@ -73,6 +36,45 @@ public :
     int get_i_block();
     int get_data();
     int set_data(int data);
+};
+
+//Segment
+class SIM_Segment {
+    int i_segment;
+    int i_start_block;
+    int status;
+    int valid_block_count;
+
+public :
+    SIM_Segment() {};
+    void set_segment_info(int i_segment, int i_start_block, int status);
+    void print_segment_info();
+    void print_status();
+    int get_i_segment();
+    int get_i_start_block();
+    int get_status();
+    int set_status(int status);
+};
+
+//Zone
+class SIM_Zone {
+    int i_zone;
+    int i_start_segment;
+    int i_start_block;
+    float utilization;
+    int valid_block_count;
+
+public :
+    SIM_Zone() {};
+    void set_zone_info(int _i_zone, int _i_start_segment, int _i_start_block);
+    void print_zone_info();
+
+    int get_i_zone();
+    int get_i_start_segment();
+    int get_i_start_block();
+    float get_utilization();
+    int get_valid_blocks(SIM_Segment * Segment_ctl, SIM_Block * Block_ctl);
+    void reset_valid_blocks();
 };
 
 #endif
