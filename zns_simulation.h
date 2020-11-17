@@ -9,6 +9,7 @@
 
 #include "workload_data.h"
 #include "m2controller.h"
+//#include "u3controller.h"
 #include "zns_simulation_datastructure.h"
 #include <string>
 #include <list>
@@ -22,9 +23,9 @@
 //In Simulation, Set default IO size : 4KB = 512 * 8
 #define SIM_BLOCK_IO_DEFAULT 8
 
-//In Simulation, Set default Block size, block count : 4KB, 0x35e000
+//In Simulation, Set default Block size, block count : 4KB, 0x35e500
 #define ZNS_BLOCK_SIZE 512 * 8
-#define ZNS_ZONE_BLOCK_COUNT 0x35e000
+#define ZNS_ZONE_BLOCK_COUNT 0x35e500
 
 //In Simulation, Set Zone spec
 #define BLOCK_COUNT_IN_SEGMENT 512
@@ -48,10 +49,11 @@ class Block_data {
 class ZNS_Simulation {
     //ZNS SSD init variable
     struct zns_share_info * zns_info_list;
-    list<Workload_Data * > * workload_list;
+    char * workload_type;
 
     //Setting ZNS SSD Argument
     int Zone_count;
+    float Dev_util;
     int Segment_count;
     int Block_count;
 
@@ -68,7 +70,7 @@ class ZNS_Simulation {
     int current_i_block_bitmap;
 
 public :
-    ZNS_Simulation(char * path, int _zone_count, list<Workload_Data * > * workload_list);
+    ZNS_Simulation(char * path, float dev_util, char * workload_type);
     //init function
     void init_block_bitmap();
     void init_segment_bitmap();
@@ -85,6 +87,9 @@ public :
 
     int init_zones_write(int numofzones);
     void init_zone_reset(int numofzones);
+    void init_all_zones_reset();
+    
+    int print_zns_totalzones();
 
     int get_offset_in_zone(int i_segment, int i_block);
     int get_i_bitmap(int i_zone, int i_segment, int i_block);

@@ -4,10 +4,10 @@
 #include <string>
 
 //Argument
-#define ARGUMENT_COUNT 4        //All Arugment + filename
+#define ARGUMENT_COUNT 4       //All Arugment + filename
 #define DEV_NAME 1
-#define SETTING_ZONE_COUNT 2
-#define SETTING_WORKLOAD_FILE 3
+#define SETTING_DEV_UTILIZATION 2
+#define SETTING_WORKLOAD_TYPE 3
 
 using namespace std;
 
@@ -18,29 +18,28 @@ int main(int argc, char * argv[]) {
 
     if(argc != ARGUMENT_COUNT) {
         cout<< "Please, set argument\n" <<endl;
-        cout<< "---> sudo ./Simulation {DEV_NAME} {SETTING_ZONE_COUNT} {SETTING_WORKLOAD_FILE}" <<endl;
-        cout<< "---> example : sudo ./Simulation /dev/nvme0n1 530 ./test_data/Entries_100000.txt" <<endl;
+        cout<< "---> sudo ./Simulation {DEV_NAME} {SETTING_DEV_UTILIZATION} {SETTING_WORKLOAD_TYPE}" <<endl;
+        cout<< "---> example : sudo ./Simulation /dev/nvme0n1 60.0 Sequential/Random/Zipfian" <<endl;
     }
     
     //Print Setting Argument List
     cout<< "Start Simulation!!" <<endl;
     cout<< "------------------------------------------------------" <<endl;
     cout<< "Device Name : " << argv[DEV_NAME] <<endl;
-    cout<< "Zone Count : " << argv[SETTING_ZONE_COUNT] <<endl;
-    cout<< "Workload File : " << argv[SETTING_WORKLOAD_FILE] <<endl;
+    cout<< "Workload Type : " << argv[SETTING_WORKLOAD_TYPE] <<endl;
     cout<< "------------------------------------------------------" <<endl<<endl;
 
     //1. Create Workload
-    cout<< "1. Start Create Workload!!" <<endl;
+    cout<< "1. Start Create Workload" <<endl;
     cout<< "------------------------------------------------------" <<endl;
-        workload_creator.get_workload_job(argv[SETTING_WORKLOAD_FILE]);
+        //workload_creator.get_workload_job(argv[SETTING_WORKLOAD_FILE]);
         //workload_creator.print_all_workload();
     cout<< "------------------------------------------------------" <<endl<<endl;
 
     //2. Init ZNS SSD
     cout<< "2. Start Init ZNS SSD Simulation" <<endl;
     cout<< "------------------------------------------------------" <<endl;
-        zns_simulation = new ZNS_Simulation(argv[DEV_NAME], atoi(argv[SETTING_ZONE_COUNT]), workload_creator.getWorkloadlist());
+        zns_simulation = new ZNS_Simulation(argv[DEV_NAME], atoi(argv[SETTING_DEV_UTILIZATION]), argv[SETTING_WORKLOAD_TYPE]);
         
     cout<< "------------------------------------------------------" <<endl<<endl;
 
@@ -59,7 +58,8 @@ int main(int argc, char * argv[]) {
     //4. Start GC Simulation in ZNS SSD
     cout<< "4. Start GC Simulation in ZNS SSD" <<endl;
     cout<< "------------------------------------------------------" <<endl;
-        zns_simulation->basic_zgc();
+        //zns_simulation->init_zones_write(1);
+        //zns_simulation->basic_zgc();
         //zns_simulation->lsm_zgc();
     cout<< "------------------------------------------------------" <<endl<<endl;
 
