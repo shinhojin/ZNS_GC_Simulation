@@ -17,7 +17,7 @@ int main()
     //ZNS SSD Info print
     //zns_init_print(zns_info_list);
 
-    zns_get_total_log_entry_info(zns_info_list->fd, 10);
+    zns_get_total_log_entry_info(zns_info_list->fd, 30);
 
     //Read/Write Test
     //zns_write(zns_info_list, test_data, BLOCK_SIZE * 4, 0, 0);
@@ -25,8 +25,10 @@ int main()
     //zns_read(zns_info_list, test_data, BLOCK_SIZE * 8, 0, 0);
     //printf("Read Result : %s\n", test_data);
     //zns_zone_open(zns_info_list, 0);
-    zns_zone_reset(zns_info_list, 0);
-    zns_get_total_log_entry_info(zns_info_list->fd, 10);
+    /*for (int i = 0; i <= 530; i++) {
+    	zns_zone_reset(zns_info_list, i);
+    }*/
+    zns_get_total_log_entry_info(zns_info_list->fd, 30);
 
     
 
