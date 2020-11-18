@@ -4,10 +4,10 @@
 #include <string>
 
 //Argument
-#define ARGUMENT_COUNT 4       //All Arugment + filename
+#define ARGUMENT_COUNT 4      //All Arugment + filename
 #define DEV_NAME 1
-#define SETTING_DEV_UTILIZATION 2
-#define SETTING_WORKLOAD_TYPE 3
+#define ZONE_COUNT 2
+#define SETTING_DEV_UTILIZATION 3
 
 using namespace std;
 
@@ -17,16 +17,17 @@ int main(int argc, char * argv[]) {
     list<Workload_Data * > * workload_list;
 
     if(argc != ARGUMENT_COUNT) {
-        cout<< "Please, set argument\n" <<endl;
-        cout<< "---> sudo ./Simulation {DEV_NAME} {SETTING_DEV_UTILIZATION} {SETTING_WORKLOAD_TYPE}" <<endl;
-        cout<< "---> example : sudo ./Simulation /dev/nvme0n1 60.0 Sequential/Random/Zipfian" <<endl;
+        cout<< "Please, set argument" <<endl;
+        cout<< "---> sudo ./Simulation {DEV_NAME} {ZONE_COUNT(MAX_512)} {SETTING_ZONE_UTILIZATION(%)}" <<endl;
+        cout<< "---> example : sudo ./Simulation /dev/nvme0n1 512 60.0" <<endl;
+        exit(0);
     }
     
     //Print Setting Argument List
     cout<< "Start Simulation!!" <<endl;
+    cout<< "This Simulation is done in a single thread." <<endl;
     cout<< "------------------------------------------------------" <<endl;
     cout<< "Device Name : " << argv[DEV_NAME] <<endl;
-    cout<< "Workload Type : " << argv[SETTING_WORKLOAD_TYPE] <<endl;
     cout<< "------------------------------------------------------" <<endl<<endl;
 
     //1. Create Workload
@@ -39,7 +40,7 @@ int main(int argc, char * argv[]) {
     //2. Init ZNS SSD
     cout<< "2. Start Init ZNS SSD Simulation" <<endl;
     cout<< "------------------------------------------------------" <<endl;
-        zns_simulation = new ZNS_Simulation(argv[DEV_NAME], atoi(argv[SETTING_DEV_UTILIZATION]), argv[SETTING_WORKLOAD_TYPE]);
+        zns_simulation = new ZNS_Simulation(argv[DEV_NAME], atoi(argv[ZONE_COUNT]), atoi(argv[SETTING_DEV_UTILIZATION]));
         
     cout<< "------------------------------------------------------" <<endl<<endl;
 
@@ -49,6 +50,7 @@ int main(int argc, char * argv[]) {
         //Simulation Random workload Test (not realworkload)
         //zns_simulation->setting_random_bitmap();
         //zns_simulation->print_segment_block_bitmap(0);
+        //zns_simulation->print_segment_block_bitmap(1);
         //zns_simulation->print_zone_block_bitmap(0);
         //zns_simulation->print_zone_segment_bitmap(0);
         
@@ -58,8 +60,7 @@ int main(int argc, char * argv[]) {
     //4. Start GC Simulation in ZNS SSD
     cout<< "4. Start GC Simulation in ZNS SSD" <<endl;
     cout<< "------------------------------------------------------" <<endl;
-        //zns_simulation->init_zones_write(1);
-        //zns_simulation->basic_zgc();
+        zns_simulation->basic_zgc();
         //zns_simulation->lsm_zgc();
     cout<< "------------------------------------------------------" <<endl<<endl;
 
@@ -78,7 +79,7 @@ int main(int argc, char * argv[]) {
     //zns_simulation->print_zone_block_bitmap(0);
     //zns_simulation->print_segment_block_bitmap(0);
     //zns_simulation->print_zone_segment_bitmap(0);
-    zns_simulation->setting_random_bitmap();
+    //zns_simulation->setting_random_bitmap();
 
     //Init Simulation
     //zns_simulation = new ZNS_Simulation("/dev/nvme0n1", workload_creator.getWorkloadlist());
