@@ -9,23 +9,13 @@
 #ifndef ZNS_Simulation_datastructure_H
 #define ZNS_Simulation_datastructure_H
 
-//Define Segment State
-#define DEFAULT_STATUS_SEGMENT 0
-#define H1_STATUS_SEGMENT 1
-#define C1_STATUS_SEGMENT 2
-#define C2_STATUS_SEGMENT 3
-
-//Define Block Data State
-#define EMPTY_DATA 0
-#define VALID_DATA 1
-#define INVALID_DATA 2
-
 using namespace std;
 
 //Block
 class SIM_Block {
     int i_block;
-    int data;
+    int state;
+
 public :
     SIM_Block() {};
     SIM_Block(int i_block);
@@ -34,8 +24,8 @@ public :
     void print_block_info();
 
     int get_i_block();
-    int get_data();
-    int set_data(int data);
+    int get_state();
+    int set_state(int state);
 };
 
 //Segment
@@ -73,6 +63,7 @@ public :
     int get_i_start_segment();
     int get_i_start_block();
     float get_utilization();
+    void set_utilization(float z_util);
     int get_valid_blocks(SIM_Segment * Segment_ctl, SIM_Block * Block_ctl);
     void reset_valid_blocks();
 };
