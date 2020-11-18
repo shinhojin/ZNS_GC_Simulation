@@ -38,7 +38,10 @@
 
 #define HOT_SEGMENT 0
 #define COLD_SEGMENT 1
-#define FREE_SEGMENT 2
+#define WARM_SEGMENT 2
+
+// Overprovisioning Zone
+#define M2_START_OP_ZONE 517
 
 using namespace std;
 
@@ -49,11 +52,10 @@ class Block_data {
 class ZNS_Simulation {
     //ZNS SSD init variable
     struct zns_share_info * zns_info_list;
-    char * workload_type;
 
     //Setting ZNS SSD Argument
     int Zone_count;
-    float Dev_util;
+    float Zone_util;
     int Segment_count;
     int Block_count;
 
@@ -70,7 +72,7 @@ class ZNS_Simulation {
     int current_i_block_bitmap;
 
 public :
-    ZNS_Simulation(char * path, float dev_util, char * workload_type);
+    ZNS_Simulation(char * path, int zone_count, float dev_util);
     //init function
     void init_block_bitmap();
     void init_segment_bitmap();
