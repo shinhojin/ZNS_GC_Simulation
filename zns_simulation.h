@@ -7,13 +7,12 @@
 #ifndef ZNS_simulation_H
 #define ZNS_simulation_H
 
-#include "workload_data.h"
 #include "m2controller.h"
 //#include "u3controller.h"
 #include "zns_simulation_datastructure.h"
-#include <string>
-#include <list>
-#include <map>
+#include "workload_creator.h"
+
+#include <cstring>
 #include <random>
 #include <iostream>
 
@@ -40,9 +39,6 @@
 #define COLD_SEGMENT 1
 #define WARM_SEGMENT 2
 
-// Overprovisioning Zone
-#define M2_START_OP_ZONE 517
-
 using namespace std;
 
 class Block_data {
@@ -59,6 +55,11 @@ class ZNS_Simulation {
     int Segment_count;
     int Block_count;
 
+    //Workload block number
+    struct Workload_Creator * workload_creator;
+    int * update_bitmap;
+    int update_write_offset;
+
     //Simualtion bitmap
     SIM_Zone * Zone_bitmap;
     SIM_Segment * Segment_bitmap;
@@ -66,39 +67,25 @@ class ZNS_Simulation {
     int total_segment_count;
     int total_block_count;
 
-    //map<start_lab, i_bitmap>
-    map <int, int> serialize_map;
-
     int current_i_block_bitmap;
 
 public :
-    ZNS_Simulation(char * path, int zone_count, float dev_util);
+    ZNS_Simulation(char * path, int zone_count, float dev_util, int update_count);
     //init function
     void init_block_bitmap();
     void init_segment_bitmap();
     void init_zone_bitmap();
 
-    int execute_workload_line();
-    
-    int write_data();
     int read_valid_data(int i_block);
+    int read_valid_data_lsm(int i_block);
     int basic_zgc();
     int lsm_zgc();
-
-    int request_write(int start_lba, int blocks);
 
     int init_zones_write(int numofzones);
     void init_zone_reset(int numofzones);
     void init_all_zones_reset();
     
     int print_zns_totalzones();
-
-    int get_offset_in_zone(int i_segment, int i_block);
-    int get_i_bitmap(int i_zone, int i_segment, int i_block);
-
-    //test workolad function (not real workload)
-    //ref: https://boycoding.tistory.com/192
-    int setting_random_bitmap();
 
     //print function
     void print_block_info(int offset);
@@ -107,6 +94,12 @@ public :
     void print_segment_block_bitmap(int i_segment);
     void print_zone_block_bitmap(int i_zone);
     void print_zone_segment_bitmap(int i_zone);
+
+    //request workload function
+    int *request_sequential_workload();
+    int *request_random_workload();
+    int *request_zipfian_workload();
+    void request_update_workload();
 };
 
 #endif
