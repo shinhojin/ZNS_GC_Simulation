@@ -4,10 +4,10 @@
  * This file defines the Simulation of Data Structure
 */
 
-#include <iostream>
-
 #ifndef ZNS_Simulation_datastructure_H
 #define ZNS_Simulation_datastructure_H
+
+#include <iostream>
 
 using namespace std;
 
@@ -18,7 +18,6 @@ class SIM_Block {
 
 public :
     SIM_Block() {};
-    SIM_Block(int i_block);
 
     void set_block_info(int i_block);
     void print_block_info();
@@ -63,7 +62,7 @@ public :
     int get_i_start_segment();
     int get_i_start_block();
     float get_utilization();
-    void set_utilization(float z_util);
+    void set_utilization(float valid_cnt);
     int get_valid_blocks(SIM_Segment * Segment_ctl, SIM_Block * Block_ctl);
     void reset_valid_blocks();
 };

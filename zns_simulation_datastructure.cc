@@ -26,26 +26,22 @@ float SIM_Zone::get_utilization() {
     return utilization;
 }
 
-void SIM_Zone::set_utilization(float z_util) {
-    this->utilization = z_util;
+void SIM_Zone::set_utilization(float valid_cnt) {
+    float zone_util;
+    zone_util = (valid_cnt / (float)(SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT)) * 100;
+    this->utilization = zone_util;
 }
 
 int SIM_Zone::get_valid_blocks(SIM_Segment * Segment_ctl, SIM_Block * Block_ctl) {
-    //int valid_block_count = 0;
     int start_i_block, end_i_block;
     
     for(int segment_num = 0; segment_num < SEGMENT_COUNT_IN_ZONE; segment_num++) {
-        /*
-        if (Segment_ctl[segment_num].get_status() == VALID_BLOCK)
-            valid_block_count++;
-        */
         start_i_block = Segment_ctl[segment_num].get_i_start_block();
         end_i_block = start_i_block + BLOCK_COUNT_IN_SEGMENT;
         for(int block_num = start_i_block; block_num < end_i_block; block_num++) {
             if (Block_ctl[block_num].get_state() == VALID_BLOCK)
                 valid_block_count++;
         }
-        
     }
     return valid_block_count;
 }
@@ -105,10 +101,6 @@ void SIM_Segment::print_status() {
 }
 
 //SIM Block Functions
-SIM_Block::SIM_Block(int i_block) {
-    this->i_block = i_block;
-}
-
 void SIM_Block::set_block_info(int _i_block) {
     i_block = _i_block;
     state = FREE_BLOCK;
