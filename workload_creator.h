@@ -19,16 +19,16 @@ class Workload_Creator {
     int * update_block;
     int Zone_count;
     int Update_count;
+    float zone_util;
+    int cal_util_block;
 
 public :
-    Workload_Creator(zns_share_info * zonelist, int zone_count, int update_count);
+    Workload_Creator(zns_share_info * zonelist, int zone_count, int update_count, float zone_util);
 
     // create workload function
     int *create_sequential_workload(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap);
     int *create_random_workload(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap);
     int *create_zipfian_workload(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap);
-
-    void ascending_sort(int * block_sort);
 
     // update block function
     int update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap, int * _update_bitmap);
