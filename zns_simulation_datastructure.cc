@@ -32,17 +32,15 @@ void SIM_Zone::set_utilization(float valid_cnt) {
     this->utilization = zone_util;
 }
 
-int SIM_Zone::get_valid_blocks(SIM_Segment * Segment_ctl, SIM_Block * Block_ctl) {
-    int start_i_block, end_i_block;
-    
-    for(int segment_num = 0; segment_num < SEGMENT_COUNT_IN_ZONE; segment_num++) {
-        start_i_block = Segment_ctl[segment_num].get_i_start_block();
-        end_i_block = start_i_block + BLOCK_COUNT_IN_SEGMENT;
-        for(int block_num = start_i_block; block_num < end_i_block; block_num++) {
-            if (Block_ctl[block_num].get_state() == VALID_BLOCK)
-                valid_block_count++;
-        }
+int SIM_Zone::get_valid_blocks(SIM_Zone * Zone_ctl, SIM_Block * Block_ctl, int i_zone) {
+    int start_i_block = Zone_ctl[i_zone].get_i_start_block();
+    int end_i_block = start_i_block + SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT;
+
+    for (int block_num = start_i_block; block_num < end_i_block; block_num++) {
+        if (Block_ctl[block_num].get_state() == VALID_BLOCK)
+            valid_block_count++;
     }
+
     return valid_block_count;
 }
 
