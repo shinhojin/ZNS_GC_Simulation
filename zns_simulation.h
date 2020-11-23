@@ -8,7 +8,6 @@
 #define ZNS_simulation_H
 
 #include "m2controller.h"
-//#include "u3controller.h"
 #include "zns_simulation_datastructure.h"
 #include "workload_creator.h"
 
