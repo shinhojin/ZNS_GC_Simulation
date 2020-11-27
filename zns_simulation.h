@@ -1,6 +1,6 @@
 /* 2020. 09. 22
  * Creater : Gunhee Choi
- * Modifier : -
+ * Modifier : Hojin Shin
  * This file defines the Simulation Class
 */
 
@@ -8,6 +8,7 @@
 #define ZNS_simulation_H
 
 #include "m2controller.h"
+#include "u3controller.h"
 #include "zns_simulation_datastructure.h"
 #include "workload_creator.h"
 
