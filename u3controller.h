@@ -1,3 +1,16 @@
+/* 2020. 11. 22
+ * Creater : Myounghoon Oh
+ * Modifier : Hojin Shin
+ * This file is the U.3 ZNS SSD Contorller header
+*/
+
+#ifndef u3controller_H
+#define u3controller_H
+
+#ifdef _cpluscplus
+extern "C" {
+#endif
+
 #include <assert.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -506,15 +519,21 @@ void zns_set_zone(int zone_number, __u8 value);
 void* zns_management_recv(unsigned int report_num, unsigned int partial, unsigned int option, unsigned int slba);
 void zns_get_zone_desc(unsigned int partial, unsigned int option, unsigned int from_zone_num, unsigned int report_zone_cnt, bool init);
 void print_zone_desc(unsigned int total_zone);
-int zns_write_request(void * write_data, __le16 nblocks, __le32 data_size, __u64 slba);
-int zns_write(void * write_data, int data_size, int zone_number);
+int u3_zns_write_request(void * write_data, __le16 nblocks, __le32 data_size, __u64 slba);
+int u3_zns_write(void * write_data, int data_size, int zone_number);
 //int zns_append(unsigned int zone_number, __u8 value);
-int zns_read_request(void * read_data, int nblocks, __u64 slba);
-int zns_read(void * read_data, int data_size, int zone_number, __u64 offset);
+int u3_zns_read_request(void * read_data, int nblocks, __u64 slba);
+int u3_zns_read(void * read_data, int data_size, int zone_number, __u64 offset);
 int zns_set_zone_change_notification();
+
 int zns_get_async_event();
 int zns_get_log(int fd, void * data, __u64 zid);
 int check_completion_queue();
 
 struct zone_descriptor *zone_desc_list;
 struct zns_info *zns_info;
+
+#ifdef __cpluscplus
+}
+#endif
+#endif

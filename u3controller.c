@@ -1,3 +1,9 @@
+/* 2020. 11. 22
+ * Creater : Myounghoon Oh
+ * Modifier : Hojin Shin
+ * This file is the U.3 ZNS SSD Contorller realization
+*/
+
 #include "u3controller.h"
 
 void* identify_ns(int fd, void * data)
@@ -384,7 +390,7 @@ void print_zone_desc(unsigned int total_zone)
 }
 
 
-int zns_write_request(void * write_data, __le16 nblocks, __le32 data_size, __u64 slba)
+int u3_zns_write_request(void * write_data, __le16 nblocks, __le32 data_size, __u64 slba)
 {
 	int result;
 
@@ -413,50 +419,7 @@ int zns_write_request(void * write_data, __le16 nblocks, __le32 data_size, __u64
 	return 0;
 }
 
-
-int zns_write_request2(void * write_data, __le16 nblocks, __le32 data_size, __u64 slba)
-{
-	int result;
-	__u64 t = 0xffffffff;
-	__le32 slba1 = slba & t;
-	__le32 slba2 = slba >> 32;
-
-	__le32 dword12 = nblocks;
-
-	printf("Write nblocks : %d\n", nblocks);
-	struct nvme_passthru_cmd cmd = {
-		.opcode		= 0x01,
-		.flags		= 0,
-		.rsvd1		= 0,
-		.nsid		= 1,
-		.cdw2		= 0,
-		.cdw3		= 0,
-		.metadata	= (__u64)(uintptr_t) 0,
-		.addr		= (__u64)(uintptr_t) write_data,
-		.metadata_len	= 0,
-		.data_len	= data_size,
-		.cdw10		= slba1,
-		.cdw11		= slba2,
-		.cdw12		= dword12,
-		.cdw13		= 0,
-		.cdw14		= 0,
-		.cdw15		= 0,
-		.timeout_ms	= 0,
-		.result		= 0,
-	};
-
-	result = ioctl(zns_info -> fd, NVME_IOCTL_SUBMIT_IO, &cmd);
-
-	if(result == -1)
-	{
-		printf("ZNS SSD Zone Write Fail\n");
-		exit(0);
-	}
-
-	return result;
-}
-
-int zns_write(void * write_data, int data_size, int zone_number)
+int u3_zns_write(void * write_data, int data_size, int zone_number)
 {
 	int i;
 	int result;
@@ -473,55 +436,7 @@ int zns_write(void * write_data, int data_size, int zone_number)
 	return result;
 }
 
-/*
-   int zns_append(unsigned int zone_number, __u8 value)
-   {	
-   int result;
-   __le64 slba = 0;
-   __u32 cdw10 = 0;
-   __u32 cdw11 = 0;
-   __u32 cdw13 = 0;
-
-   if(zone_number < 0)
-//Select All 
-cdw13 = 0;
-else
-slba = zone_number * zone_size;
-
-struct nvme_passthru_cmd cmd = {
-.opcode		= 0x7D,
-.flags		= 0,
-.rsvd1		= 0,
-.nsid		= 1,
-.cdw2		= 0,
-.cdw3		= 0,
-.metadata	= (__u64)(uintptr_t) 0,
-.addr		= (__u64)(uintptr_t) 0,
-.metadata_len	= 0,
-.data_len	= 0,
-.cdw10		= cdw10,
-.cdw11		= 0,
-.cdw12		= 0,
-.cdw13		= 0,
-.cdw14		= 0,
-.cdw15		= 0,
-.timeout_ms	= 0,
-.result		= 0,
-};
-
-result = ioctl(zns_info -> fd, NVME_IOCTL_IO_CMD, &cmd);
-
-if(result == -1)
-{
-printf("ZNS SSD Zone Management Send Fail\n");
-return -1;
-}
-
-return 0;
-}
- */
-
-int zns_read_request(void * read_data, int nblocks, __u64 slba)
+int u3_zns_read_request(void * read_data, int nblocks, __u64 slba)
 {
 	int result;
 
@@ -550,7 +465,7 @@ int zns_read_request(void * read_data, int nblocks, __u64 slba)
 	return 0;
 }
 
-int zns_read(void * read_data, int data_size, int zone_number, __u64 offset)
+int u3_zns_read(void * read_data, int data_size, int zone_number, __u64 offset)
 {
 	int i;
 	int result;
@@ -606,6 +521,10 @@ int zns_set_zone_change_notification()
 
 	return 0;
 }
+
+
+
+
 
 int zns_get_async_event()
 {}
