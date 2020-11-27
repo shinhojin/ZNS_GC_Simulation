@@ -1,23 +1,26 @@
 /* 2020. 09. 22
  * Creater : Gunhee Choi
- * Modifier : -
+ * Modifier : Hojin Shin
  * This file is the M.2 ZNS SSD Contorller realization
 */
 
 #include "m2controller.h"
+#include <iostream>
 
-int m2_zns_init(char * dev, struct zns_share_info * zonelist)
+using namespace std;
+
+int zns_init(char * dev, struct zns_share_info * zonelist)
 {
     int i;
     int fd = open(dev, O_RDWR);
-    void * tempdata = new struct nvme_id_ns;
-    void * temp_log_data = new struct nvme_zone_info_entry;
+    void * tempdata = malloc(SECTOR_SIZE);
+    void * temp_log_data = malloc(LOG_SIZE);
     struct nvme_zone_info_entry * zone_entrys;
     struct nvme_id_ns * id_ns;
     
     memset(tempdata, 0, SECTOR_SIZE);
-    m2_zns_info_ns(fd, tempdata);
-    id_ns = (struct nvme_id_ns *) tempdata;
+    zns_info_ns(fd, tempdata);
+    id_ns = tempdata;
     
     zonelist->fd = fd;
     zonelist->zonesize = id_ns->zonesize;
@@ -25,14 +28,13 @@ int m2_zns_init(char * dev, struct zns_share_info * zonelist)
     zonelist->openzones = id_ns->openzones;
     zonelist->totalzones = id_ns->totalzones;
 
-    //zonelist->zone_list = malloc(sizeof(struct zns_zone_info) * zonelist->totalzones);
-    zonelist->zone_list = new struct zns_zone_info[zonelist->totalzones];
+    zonelist->zone_list = malloc(sizeof(struct zns_zone_info) * zonelist->totalzones);
     
     for(i=0; i<zonelist->totalzones; i++)
     {
         memset(temp_log_data, 0, LOG_SIZE);
-        m2_zns_get_log_entry_info(zonelist->fd, temp_log_data, i);
-        struct nvme_zone_info_entry  * temp_zone_info_entry = (struct nvme_zone_info_entry *) temp_log_data;
+        zns_get_log_entry_info(zonelist->fd, temp_log_data, i);
+        struct nvme_zone_info_entry  * temp_zone_info_entry = temp_log_data;
         (zonelist->zone_list)[i].zone_entry.zone_condition = temp_zone_info_entry->zone_condition;
         (zonelist->zone_list)[i].zone_entry.zone_capacity = temp_zone_info_entry->zone_capacity;
         (zonelist->zone_list)[i].zone_entry.write_pointer = temp_zone_info_entry->write_pointer;
@@ -42,13 +44,13 @@ int m2_zns_init(char * dev, struct zns_share_info * zonelist)
         (zonelist->zone_list)[i].zone_entry.cnt_reset = temp_zone_info_entry->cnt_reset;
     }
     
-    delete tempdata;
-    delete temp_log_data;
+    free(tempdata);
+    free(temp_log_data);
     
     return fd;
 }
 
-int m2_zns_init_print(struct zns_share_info * zonelist)
+int * zns_init_print(struct zns_share_info * zonelist)
 {
     int i;
     struct nvme_zone_info_entry temp_zone_info_entry;
@@ -76,33 +78,34 @@ int m2_zns_init_print(struct zns_share_info * zonelist)
     
 }
 
-__u64 m2_get_zone_to_slba(struct zns_share_info * zonelist, int zonenumber)
+
+__u64 get_zone_to_slba(struct zns_share_info * zonelist, int zonenumber)
 {
     return (zonelist->zone_list)[zonenumber].zone_entry.zone_start_lba;
 }
 
-void * m2_zns_info_ctrl(int fd, void * data)
+void * zns_info_ctrl(int fd, void * data)
 {	
     int result;
     struct nvme_passthru_cmd cmd = {
-		opcode		: 0x06,
-		flags		: 0,
-		rsvd1		: 0,
-		nsid		: 0,
-		cdw2		: 0,
-		cdw3		: 0,
-		metadata	: (__u64)(uintptr_t) 0,
-		addr		: (__u64)(uintptr_t) data,
-		metadata_len	: 0,
-		data_len	: 4096,
-		cdw10		: 1,
-		cdw11		: 0,
-		cdw12		: 0,
-		cdw13		: 0,
-		cdw14		: 0,
-		cdw15		: 0,
-		timeout_ms	: 0,
-		result		: 0,
+		.opcode		= 0x06,
+		.flags		= 0,
+		.rsvd1		= 0,
+		.nsid		= 0,
+		.cdw2		= 0,
+		.cdw3		= 0,
+		.metadata	= (__u64)(uintptr_t) 0,
+		.addr		= (__u64)(uintptr_t) data,
+		.metadata_len	= 0,
+		.data_len	= 4096,
+		.cdw10		= 1,
+		.cdw11		= 0,
+		.cdw12		= 0,
+		.cdw13		= 0,
+		.cdw14		= 0,
+		.cdw15		= 0,
+		.timeout_ms	= 0,
+		.result		= 0,
 	};
 
     result = ioctl(fd, NVME_IOCTL_ADMIN_CMD, &cmd);
@@ -111,42 +114,42 @@ void * m2_zns_info_ctrl(int fd, void * data)
     {
         printf("ZNS SSD Ctrl Info Request Fail\n");
     }
-        return NULL;
+        return -1;
 
     return data;
 }
 
-void m2_zns_info_ctrl_print(void * data)
+void * zns_info_ctrl_print(void * data)
 {
-    struct nvme_id_ctrl * id_ctrl = (struct nvme_id_ctrl *) data;
+    struct nvme_id_ctrl * id_ctrl = data;
 
     printf("vid\t:\t%#"PRIx64"\n", le64_to_cpu(id_ctrl->vid));
 	printf("ssvid\t:\t%#"PRIx64"\n", le64_to_cpu(id_ctrl->ssvid));
 	printf("oncs\t:\t%#"PRIx64"\n", le64_to_cpu(id_ctrl->oncs));
 }
 
-void * m2_zns_info_ns(int fd, void * data)
+void * zns_info_ns(int fd, void * data)
 {	
     int result;
     struct nvme_passthru_cmd cmd = {
-		opcode		: 0x06,
-		flags		: 0,
-		rsvd1		: 0,
-		nsid		: 1,
-		cdw2		: 0,
-		cdw3		: 0,
-		metadata	: (__u64)(uintptr_t) 0,
-		addr		: (__u64)(uintptr_t) data,
-		metadata_len	: 0,
-		data_len	: 4096,
-		cdw10		: 0,
-		cdw11		: 0,
-		cdw12		: 0,
-		cdw13		: 0,
-		cdw14		: 0,
-		cdw15		: 0,
-		timeout_ms	: 0,
-		result		: 0,
+		.opcode		= 0x06,
+		.flags		= 0,
+		.rsvd1		= 0,
+		.nsid		= 1,
+		.cdw2		= 0,
+		.cdw3		= 0,
+		.metadata	= (__u64)(uintptr_t) 0,
+		.addr		= (__u64)(uintptr_t) data,
+		.metadata_len	= 0,
+		.data_len	= 4096,
+		.cdw10		= 0,
+		.cdw11		= 0,
+		.cdw12		= 0,
+		.cdw13		= 0,
+		.cdw14		= 0,
+		.cdw15		= 0,
+		.timeout_ms	= 0,
+		.result		= 0,
 	};
 
     result = ioctl(fd, NVME_IOCTL_ADMIN_CMD, &cmd);
@@ -155,15 +158,15 @@ void * m2_zns_info_ns(int fd, void * data)
     {
         printf("ZNS SSD Ctrl Info Request Fail\n");
     }
-        return NULL;
+        return -1;
 
     return data;
 }
 
 
-void m2_zns_info_ns_print(void * data)
+void * zns_info_ns_print(void * data)
 {
-    struct nvme_id_ns * id_ns = (struct nvme_id_ns *) data;
+    struct nvme_id_ns * id_ns = data;
 
     printf("nsze\t\t:\t%#"PRIx64"\n", le64_to_cpu(id_ns->nsze));
 	printf("Zone Size\t:\t%#"PRIx64"\n", id_ns->zonesize);
@@ -172,23 +175,23 @@ void m2_zns_info_ns_print(void * data)
 	printf("totalzones\t:\t%#"PRIx64"\n", id_ns->totalzones);
 }
 
-int m2_zns_write_request(int fd, const void * write_data, int nblocks, __u64 slba)
+int zns_write_request(int fd, void * write_data, int nblocks, __u64 slba)
 {
     int result;
-    
-    struct nvme_user_io io = {
-            opcode		: 0x01,
-            flags		: 0,
-            control	    : 0x0400,
-            nblocks	    : nblocks,
-            rsvd		: 0,
-            metadata	: (__u64)(uintptr_t) 0,
-            addr		: (__u64)(uintptr_t) write_data,
-            slba		: slba,
-            dsmgmt		: 0,
-            reftag		: 0,
-            apptag		: 0,
-            appmask	    : 0
+
+    struct nvme_user_io io= {
+            .opcode		= 0x01,
+            .flags		= 0,
+            .control	= 0x0400,
+            .nblocks	= nblocks,
+            .rsvd		= 0,
+            .metadata	= (__u64)(uintptr_t) 0,
+            .addr		= (__u64)(uintptr_t) write_data,
+            .slba		= slba,
+            .dsmgmt		= 0,
+            .reftag		= 0,
+            .appmask	= 0,
+            .apptag		= 0,
         };
 
     result = ioctl(fd, NVME_IOCTL_SUBMIT_IO, &io);
@@ -201,7 +204,7 @@ int m2_zns_write_request(int fd, const void * write_data, int nblocks, __u64 slb
     return 0;
 }
 
-int m2_zns_write(struct zns_share_info * zonelist, const void * write_data, int data_size, int zone_number, __u64 offset)
+int zns_write(struct zns_share_info * zonelist, void * write_data, int data_size, int zone_number, __u64 offset)
 {
     int i;
     int result;
@@ -213,45 +216,47 @@ int m2_zns_write(struct zns_share_info * zonelist, const void * write_data, int 
     else
         nblocks = data_size / 512;
     
-    write_lba = m2_get_zone_to_slba(zonelist, zone_number) + offset;
+    //printf("nblocks : %d\n", nblocks);
 
-    result = m2_zns_write_request(zonelist->fd, write_data, nblocks, write_lba);
-    m2_zns_update_zone_info(zonelist, zone_number);
+    write_lba = get_zone_to_slba(zonelist, zone_number) + offset;
+
+    result = zns_write_request(zonelist->fd, write_data, nblocks, write_lba);
+    zns_update_zone_info(zonelist, zone_number);
 
     return result;
 }
 
 
-int m2_zns_read_request(int fd, const void * read_data, int nblocks, __u64 slba)
+int zns_read_request(int fd, void * read_data, int nblocks, __u64 slba)
 {
     int result;
 
     struct nvme_user_io io = {
-            opcode		: 0x02,
-            flags		: 0,
-            control	    : 0,
-            nblocks	    : nblocks,
-            rsvd		: 0,
-            metadata	: 0,
-            addr		: (__u64)(uintptr_t) read_data,
-            slba		: slba,
-            dsmgmt		: 0,
-            reftag		: 0,
-            apptag		: 0,
-            appmask	    : 0
+            .opcode		= 0x02,
+            .flags		= 0,
+            .control	= 0,
+            .nblocks	= nblocks,
+            .rsvd		= 0,
+            .metadata	= 0,
+            .addr		= (__u64)(uintptr_t) read_data,
+            .slba		= slba,
+            .dsmgmt		= 0,
+            .reftag		= 0,
+            .appmask	= 0,
+            .apptag		= 0,
         };
 
     result = ioctl(fd, NVME_IOCTL_SUBMIT_IO, &io);
     if(result == -1)
     {
-        printf("ZNS SSD Read Fail\n");
+        printf("ZNS SSD Read Fail : %#x\n");
         return -1;
     }
 
     return 0;
 }
 
-int m2_zns_read(struct zns_share_info * zonelist, const void * read_data, int data_size, int zone_number, __u64 offset)
+int zns_read(struct zns_share_info * zonelist, void * write_data, int data_size, int zone_number, __u64 offset)
 {
     int i;
     int result;
@@ -263,39 +268,24 @@ int m2_zns_read(struct zns_share_info * zonelist, const void * read_data, int da
     else
         nblocks = data_size / 512;
     
-    write_lba = m2_get_zone_to_slba(zonelist, zone_number) + offset;
+    write_lba = get_zone_to_slba(zonelist, zone_number) + offset;
     
-    result = m2_zns_read_request(zonelist->fd, read_data, nblocks, write_lba);
-    m2_zns_update_zone_info(zonelist, zone_number);
+    result = zns_read_request(zonelist->fd, write_data, nblocks, write_lba);
+    zns_update_zone_info(zonelist, zone_number);
 
     return result;
 }
 
-int m2_zns_get_log_entry_info(int fd, void * data, __u64 zid)
+int zns_get_log_entry_info(int fd, void * data, __u64 zid)
 {
     __u32 data_len = 64;
     int result;
 
-
     struct nvme_admin_cmd cmd = {
-        opcode  : 0x02,
-	    flags   : 0,
-	    rsvd1   : 0,
-	    nsid    : 1,
-	    cdw2    : 0,
-	    cdw3    : 0,
-	    metadata: 0,
-	    addr    : (__u64)(uintptr_t) data,
-	    metadata_len: 0,
-	    data_len: data_len,
-	    cdw10: 0,
-	    cdw11: 0,
-	    cdw12: 0,
-	    cdw13: 0,
-	    cdw14: 0,
-	    cdw15: 0,
-	    timeout_ms: 0,
-	    result: 0
+		.opcode = 0x02,
+		.nsid = 1,
+		.addr = (__u64)(uintptr_t) data,
+		.data_len = data_len,
 	};
 
     __u32 numd = (data_len >> 2) - 1;
@@ -323,24 +313,24 @@ int m2_zns_get_log_entry_info(int fd, void * data, __u64 zid)
     return 0;
 }
 
-int m2_zns_get_total_log_entry_info(int fd, int nzones)
+int zns_get_total_log_entry_info(int fd, int nzones)
 {
     int i;
-    void * data = new nvme_zone_info_entry;
+    void * data = malloc(64);
 
     for(i=0; i<nzones; i++)
     {
         memset(data, 0, 64);
-        m2_zns_get_log_entry_info(fd, data, i);
-        m2_zns_log_info_entry_print(i, data);
+        zns_get_log_entry_info(fd, data, i);
+        zns_log_info_entry_print(i, data);
     }
 
     return 0;
 }
 
-int m2_zns_log_info_entry_print(int num, void * data)
+int zns_log_info_entry_print(int num, void * data)
 {   
-    struct nvme_zone_info_entry * zone_entry = (struct nvme_zone_info_entry * ) data;
+    struct nvme_zone_info_entry * zone_entry = data;
     printf("Zone %d { Condition : %#"PRIx64", Capacity : %#"PRIx64", SLBA : %#"PRIx64", WP : %#"PRIx64", WriteCnt : %#"PRIx64", ReadCnt : %#"PRIx64", ResetCnt : %#"PRIx64" } \n",
                                 num,
                                 le64_to_cpu(zone_entry->zone_condition),
@@ -353,35 +343,18 @@ int m2_zns_log_info_entry_print(int num, void * data)
     return 0;
 }
 
-int m2_zns_zone_io_managemnet(int fd, __u64 slba, __u64 action)
+int zns_zone_io_managemnet(int fd, __u64 slba, __u64 action)
 {
     int result;
     __u64 t = 0xffffffff;
 
-    struct nvme_admin_cmd cmd = {
-        opcode  : 0x20,
-	    flags   : NULL,
-	    rsvd1   : NULL,
-	    nsid    : 1,
-	    cdw2    : NULL,
-	    cdw3    : NULL,
-	    metadata: NULL,
-	    addr    : NULL,
-	    metadata_len: NULL,
-	    data_len: NULL,
-	    cdw10: NULL,
-	    cdw11: NULL,
-	    cdw12: NULL,
-	    cdw13: NULL,
-	    cdw14: NULL,
-	    cdw15: NULL,
-	    timeout_ms: NULL,
-	    result: NULL
-	};
-
+    struct nvme_passthru_cmd cmd = {
+  		.opcode = 0x20,
+		.nsid = 1,
+    };
     slba |= action << 61;
     cmd.cdw10 = slba & t;
-	cmd.cdw11 = slba >> 32;
+    cmd.cdw11 = slba >> 32;
 
     result = ioctl(fd, NVME_IOCTL_IO_CMD, &cmd);
     
@@ -394,13 +367,13 @@ int m2_zns_zone_io_managemnet(int fd, __u64 slba, __u64 action)
     return 0;
 }
 
-int m2_zns_update_zone_info(struct zns_share_info * zonelist, int zonenumber)
+int zns_update_zone_info(struct zns_share_info * zonelist, int zonenumber)
 {
-    void * temp_log_data = new nvme_zone_info_entry;
+    void * temp_log_data = malloc(LOG_SIZE);
     struct nvme_zone_info_entry * zone_entrys;
 
-    m2_zns_get_log_entry_info(zonelist->fd, temp_log_data, zonenumber);
-    struct nvme_zone_info_entry  * temp_zone_info_entry = (struct nvme_zone_info_entry *) temp_log_data;
+    zns_get_log_entry_info(zonelist->fd, temp_log_data, zonenumber);
+    struct nvme_zone_info_entry  * temp_zone_info_entry = temp_log_data;
     (zonelist->zone_list)[zonenumber].zone_entry.zone_condition = temp_zone_info_entry->zone_condition;
     (zonelist->zone_list)[zonenumber].zone_entry.zone_capacity = temp_zone_info_entry->zone_capacity;
     (zonelist->zone_list)[zonenumber].zone_entry.write_pointer = temp_zone_info_entry->write_pointer;
@@ -409,46 +382,46 @@ int m2_zns_update_zone_info(struct zns_share_info * zonelist, int zonenumber)
     (zonelist->zone_list)[zonenumber].zone_entry.cnt_write = temp_zone_info_entry->cnt_write;
     (zonelist->zone_list)[zonenumber].zone_entry.cnt_reset = temp_zone_info_entry->cnt_reset;
 
-    delete temp_log_data;
+    free(temp_log_data);
     
     return 0;
 }
 
-int m2_zns_zone_finish_request(int fd, __u64 slba)
+int zns_zone_finish_request(int fd, __u64 slba)
 {
-    return m2_zns_zone_io_managemnet(fd, slba, 0x02);
+    return zns_zone_io_managemnet(fd, slba, 0x02);
 }
 
-int m2_zns_zone_open_request(int fd, __u64 slba)
+int zns_zone_open_request(int fd, __u64 slba)
 {
-    return m2_zns_zone_io_managemnet(fd, slba, 0x03);
+    return zns_zone_io_managemnet(fd, slba, 0x03);
 }
 
-int m2_zns_zone_reset_request(int fd, __u64 slba)
+int zns_zone_reset_request(int fd, __u64 slba)
 {
-    return m2_zns_zone_io_managemnet(fd, slba, 0x04);
+    return zns_zone_io_managemnet(fd, slba, 0x04);
 }
 
-int m2_zns_zone_finish(struct zns_share_info * zonelist, int zonenumber)
+int zns_zone_finish(struct zns_share_info * zonelist, int zonenumber)
 {
     int result;
-    result = m2_zns_zone_finish_request(zonelist->fd, m2_get_zone_to_slba(zonelist, zonenumber));
-    m2_zns_update_zone_info(zonelist, zonenumber);
+    result = zns_zone_finish_request(zonelist->fd, get_zone_to_slba(zonelist, zonenumber));
+    zns_update_zone_info(zonelist, zonenumber);
     return result;
 }
 
-int m2_zns_zone_open(struct zns_share_info * zonelist, int zonenumber)
+int zns_zone_open(struct zns_share_info * zonelist, int zonenumber)
 {
     int result;
-    result = m2_zns_zone_open_request(zonelist->fd, m2_get_zone_to_slba(zonelist, zonenumber));
-    m2_zns_update_zone_info(zonelist, zonenumber);
+    result = zns_zone_open_request(zonelist->fd, get_zone_to_slba(zonelist, zonenumber));
+    zns_update_zone_info(zonelist, zonenumber);
     return result;
 }
 
-int m2_zns_zone_reset(struct zns_share_info * zonelist, int zonenumber)
+int zns_zone_reset(struct zns_share_info * zonelist, int zonenumber)
 {
     int result;
-    result = m2_zns_zone_reset_request(zonelist->fd, m2_get_zone_to_slba(zonelist, zonenumber));
-    m2_zns_update_zone_info(zonelist, zonenumber);
+    result = zns_zone_reset_request(zonelist->fd, get_zone_to_slba(zonelist, zonenumber));
+    zns_update_zone_info(zonelist, zonenumber);
     return result;
 }

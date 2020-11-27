@@ -1,8 +1,15 @@
 /* 2020. 09. 22
  * Creater : Gunhee Choi
- * Modifier : -
+ * Modifier : Hojin Shin
  * This file is the M.2 ZNS SSD Contorller header
 */
+
+#ifndef m2controller_H
+#define m2controller_H
+
+#ifdef _cpluscplus
+extern "C" {
+#endif
 
 #include <assert.h>
 #include <sys/ioctl.h>
@@ -26,7 +33,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <endian.h>
-#include <iostream>
 
 #define BLOCK_SIZE 512
 #define SECTOR_SIZE (BLOCK_SIZE * 8)
@@ -413,32 +419,37 @@ struct zns_sector {
 #define NVME_IOCTL_SUBSYS_RESET	_IO('N', 0x45)
 #define NVME_IOCTL_RESCAN	_IO('N', 0x46)
 
-void * m2_zns_info_ctrl(int fd, void * data);
-void m2_zns_info_ctrl_print(void * data);
+void * zns_info_ctrl(int fd, void * data);
+void * zns_info_ctrl_print(void * data);
 
-void * m2_zns_info_ns(int fd, void * data);
-void m2_zns_info_ns_print(void * data);
+void * zns_info_ns(int fd, void * data);
+void * zns_info_ns_print(void * data);
 
-int m2_zns_init(char * dev, struct zns_share_info * zonelist);
-int m2_zns_init_print(struct zns_share_info * zonelist);
+int zns_init(char * dev, struct zns_share_info * zonelist);
+int * zns_init_print(struct zns_share_info * zonelist);
 
-__u64 m2_get_zone_to_slba(struct zns_share_info * zonelist, int zonenumber);
+__u64 get_zone_to_slba(struct zns_share_info * zonelist, int zonenumber);
 
-int m2_zns_write_request(int fd, const void * write_data, int nblocks, __u64 slba);
-int m2_zns_write(struct zns_share_info * zonelist, const void * write_data, int data_size, int zone_number, __u64 offset);
-int m2_zns_read_request(int fd, const void * read_data, int nblocks, __u64 slba);
-int m2_zns_read(struct zns_share_info * zonelist, const void * read_data, int data_size, int zone_number, __u64 offset);
+int zns_write_request(int fd, void * write_data, int nblocks, __u64 slba);
+int zns_write(struct zns_share_info * zonelist, void * write_data, int data_size, int zone_number, __u64 offset);
+int zns_read_request(int fd, void * read_data, int nblocks, __u64 slba);
+int zns_read(struct zns_share_info * zonelist, void * write_data, int data_size, int zone_number, __u64 offset);
 
-int m2_zns_get_log_entry_info(int fd, void * data, __u64 zid);
-int m2_zns_get_total_log_entry_info(int fd, int nzones);
-int m2_zns_log_info_entry_print(int num, void * data);
+int zns_get_log_entry_info(int fd, void * data, __u64 zid);
+int zns_get_total_log_entry_info(int fd, int nzones);
+int zns_log_info_entry_print(int num, void * data);
 
-int m2_zns_update_zone_info(struct zns_share_info * zonelist, int zonenumber);
+int zns_update_zone_info(struct zns_share_info * zonelist, int zonenumber);
 
-int m2_zns_zone_io_managemnet(int fd, __u64 slba, __u64 action);
-int m2_zns_zone_finish_request(int fd, __u64 slba);
-int m2_zns_zone_open_request(int fd, __u64 slba);
-int m2_zns_zone_reset_request(int fd, __u64 slba);
-int m2_zns_zone_finish(struct zns_share_info * zonelist, int zonenumber);
-int m2_zns_zone_open(struct zns_share_info * zonelist, int zonenumber);
-int m2_zns_zone_reset(struct zns_share_info * zonelist, int zonenumber);
+int zns_zone_io_managemnet(int fd, __u64 slba, __u64 action);
+int zns_zone_finish_request(int fd, __u64 slba);
+int zns_zone_open_request(int fd, __u64 slba);
+int zns_zone_reset_request(int fd, __u64 slba);
+int zns_zone_finish(struct zns_share_info * zonelist, int zonenumber);
+int zns_zone_open(struct zns_share_info * zonelist, int zonenumber);
+int zns_zone_reset(struct zns_share_info * zonelist, int zonenumber);
+
+#ifdef __cpluscplus
+}
+#endif
+#endif /*m2controller.h*/
