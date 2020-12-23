@@ -483,7 +483,7 @@ int u3_zns_read(void * read_data, int data_size, int zone_number, __u64 offset)
 	return result;
 }
 
-int zns_set_zone_change_notification()
+int u3_zns_set_zone_change_notification()
 {
 	int result;
 	__u32 cdw10 = 0x0B;
