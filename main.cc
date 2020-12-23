@@ -8,27 +8,17 @@
 #define SETTING_DEV_UTILIZATION 3
 #define GC_NUMBER 4
 #define WORKLOAD_NUM 5
-#define UPDATE_COUNT 6
+#define DEV_NUM 6
 
 using namespace std;
 
 int main(int argc, char * argv[]) {
     ZNS_Simulation * zns_simulation;
 
-    void * test_data = malloc(_192KB * 1);
-	memset(test_data, 'W', _192KB * 1);
-
-    //ZNS SSD Init
-	u3_zns_get_info("/dev/nvme0n1");
-    cout << "do" << endl;
-	u3_zns_get_zone_desc(REPORT_ALL, REPORT_ALL_STATE, 0, 0, true);
-
-    u3_zns_write(test_data, _192KB * 1, 0);
-
     if(argc != ARGUMENT_COUNT) {
         cout<< "Please, set argument" <<endl;
-        cout<< "---> sudo ./Simulation {DEV_NAME} {ZONE_COUNT(MAX_512)} {SETTING_ZONE_UTILIZATION(%)} {GC_NUMBER(1.BASIC_GC, 2.LSM_ZGC)} {WORKLOAD_TYPE(1.SEQ, 2.RAND, 3.ZIPFIAN)} {UPDATE_COUNT}" <<endl;
-        cout<< "---> example : sudo ./Simulation /dev/nvme0n1 512 60.0 1 2 1000" <<endl;
+        cout<< "---> sudo ./Simulation {DEV_NAME} {DEV_NUM(1. M2, 2. U3)} {ZONE_COUNT(MAX_512)} {SETTING_ZONE_UTILIZATION(%)} {GC_NUMBER(1.BASIC_GC, 2.LSM_ZGC)} {WORKLOAD_TYPE(1.SEQ, 2.RAND, 3.ZIPFIAN)} " <<endl;
+        cout<< "---> example : sudo ./Simulation /dev/nvme0n1 2 512 60.0 1 2" <<endl;
         exit(0);
     }
     
@@ -43,7 +33,7 @@ int main(int argc, char * argv[]) {
     //1. Init ZNS SSD
     cout<< "1. Start Init ZNS SSD Simulation" <<endl;
     cout<< "------------------------------------------------------" <<endl;
-        //zns_simulation = new ZNS_Simulation(argv[DEV_NAME], atoi(argv[ZONE_COUNT]), atoi(argv[SETTING_DEV_UTILIZATION]), atoi(argv[UPDATE_COUNT]));
+        zns_simulation = new ZNS_Simulation(argv[DEV_NAME], atoi(argv[ZONE_COUNT]), atoi(argv[SETTING_DEV_UTILIZATION]), atoi(argv[DEV_NUM]));
         //zns_simulation->print_segment_block_bitmap(0);
         
     cout<< "------------------------------------------------------" <<endl<<endl;

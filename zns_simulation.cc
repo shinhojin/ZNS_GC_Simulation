@@ -8,16 +8,17 @@
 #include <time.h>
 #include <cmath>
 
-ZNS_Simulation::ZNS_Simulation(char * path, int zone_count, float zone_util, int update_count) {
+ZNS_Simulation::ZNS_Simulation(char * path, int zone_count, float zone_util, int dev_num) {
         zns_info_list = (struct m2_zns_share_info *) malloc(sizeof(struct m2_zns_share_info));
         m2_zns_init(path, zns_info_list);
 
         //Workload Argument
-        workload_creator = new Workload_Creator(zns_info_list, zone_count, update_count, zone_util);
+        workload_creator = new Workload_Creator(zns_info_list, zone_count, dev_num, zone_util);
         
         //init Argument
         Zone_count = zone_count;
         Zone_util = zone_util;
+        Dev_num = dev_num;
         Segment_count = SEGMENT_COUNT_IN_ZONE;
         Block_count = BLOCK_COUNT_IN_SEGMENT;
         total_segment_count = Zone_count * Segment_count;

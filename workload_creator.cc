@@ -6,11 +6,11 @@
 #include <time.h>
 #include <math.h>
 
-Workload_Creator::Workload_Creator(m2_zns_share_info * zonelist, int zone_count, int update_count, float zone_util) {
+Workload_Creator::Workload_Creator(m2_zns_share_info * zonelist, int zone_count, int dev_num, float zone_util) {
     this->zns_info_list = zonelist;
     this->zone_util = zone_util;
     this->Zone_count = zone_count;
-    this->Update_count = update_count;
+    this->Dev_num = dev_num;
     cal_util_block = Zone_count * (int)ceil(SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
 }
 

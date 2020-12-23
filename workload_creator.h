@@ -15,6 +15,7 @@ class Workload_Creator {
     //ZNS SSD variable
     struct m2_zns_share_info * zns_info_list;
 
+    int Dev_num;
     int * update_block;
     int Zone_count;
     int Update_count;

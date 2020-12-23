@@ -54,6 +54,7 @@ class ZNS_Simulation {
     float Zone_util;
     int Segment_count;
     int Block_count;
+    int Dev_num;
 
     //Workload block number
     struct Workload_Creator * workload_creator;

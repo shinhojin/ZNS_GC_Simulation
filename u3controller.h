@@ -523,8 +523,8 @@ int u3_zns_get_async_event();
 int u3_zns_get_log(int fd, void * data, __u64 zid);
 int u3_check_completion_queue();
 
-struct u3_zone_descriptor *zone_desc_list;
-struct u3_zns_info *zns_info;
+extern struct u3_zone_descriptor *zone_desc_list;
+extern struct u3_zns_info *zns_info;
 
 #ifdef __cpluscplus
 }
