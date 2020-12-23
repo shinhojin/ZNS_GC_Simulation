@@ -6,10 +6,10 @@
 
 #include "u3controller.h"
 
-void* identify_ns(int fd, void * data)
+void* u3_identify_ns(int fd, void * data)
 {	
 	int result;
-	struct nvme_passthru_cmd cmd = {
+	struct u3_nvme_passthru_cmd cmd = {
 		.opcode		= 0x06,
 		.flags		= 0,
 		.rsvd1		= 0,
@@ -30,7 +30,7 @@ void* identify_ns(int fd, void * data)
 		.result		= 0,
 	};
 
-	result = ioctl(fd, NVME_IOCTL_ADMIN_CMD, &cmd);
+	result = ioctl(fd, U3_NVME_IOCTL_ADMIN_CMD, &cmd);
 
 	if(result == -1)
 	{
@@ -41,10 +41,10 @@ void* identify_ns(int fd, void * data)
 	return data;
 }
 
-void* identify_ctrl(int fd, void * data)
+void* u3_identify_ctrl(int fd, void * data)
 {	
 	int result;
-	struct nvme_passthru_cmd cmd = {
+	struct u3_nvme_passthru_cmd cmd = {
 		.opcode		= 0x06,
 		.flags		= 0,
 		.rsvd1		= 0,
@@ -65,7 +65,7 @@ void* identify_ctrl(int fd, void * data)
 		.result		= 0,
 	};
 
-	result = ioctl(fd, NVME_IOCTL_ADMIN_CMD, &cmd);
+	result = ioctl(fd, U3_NVME_IOCTL_ADMIN_CMD, &cmd);
 
 	if(result == -1)
 	{
@@ -76,15 +76,15 @@ void* identify_ctrl(int fd, void * data)
 	return data;
 }
 
-int zns_get_info(char * dev)
+int u3_zns_get_info(char * dev)
 {
-	zns_info = malloc(sizeof(struct zns_info));
+	zns_info = (struct u3_zns_info *)malloc(sizeof(struct u3_zns_info));
 	int fd = open(dev, O_RDWR);
-	struct nvme_id_ns *id_ns = malloc(SECTOR_SIZE);
-	struct controller_identify *id_ctrl = malloc(SECTOR_SIZE);
+	struct u3_nvme_id_ns *id_ns = (struct u3_nvme_id_ns *)malloc(SECTOR_SIZE);
+	struct u3_controller_identify *id_ctrl = (struct u3_controller_identify *)malloc(SECTOR_SIZE);
 
-	identify_ns(fd, id_ns);
-	identify_ctrl(fd, id_ctrl);
+	u3_identify_ns(fd, id_ns);
+	u3_identify_ctrl(fd, id_ctrl);
 
 	zns_info -> fd = fd;
 	zns_info -> ns_size = id_ns -> nsze;
@@ -111,13 +111,13 @@ int zns_get_info(char * dev)
 	//printf("A\n");
 	//printf("%u\n",zns_info -> zonef.zsze);
 	zns_info -> max_zone_cnt = (zns_info -> ns_size)/(zns_info -> zonef.zsze);
-	zone_desc_list = malloc(zns_info -> max_zone_cnt * sizeof(struct zone_descriptor));
+	zone_desc_list = (struct u3_zone_descriptor *)malloc(zns_info -> max_zone_cnt * sizeof(struct u3_zone_descriptor));
 	//printf("B\n");
 
 	return 0;
 }
 
-void print_zns_info()
+void u3_print_zns_info()
 {
 	printf("ZNS SSD Info\n");
 
@@ -139,11 +139,11 @@ void print_zns_info()
 	//printf("Controller id - Max Append Size\t: %#"PRIx8"\n", zns_info -> max_append_size);
 }
 
-int zns_format()
+int u3_zns_format()
 {	
 	int result;
 	__u32 cdw10 = 0;
-	struct nvme_passthru_cmd cmd = {
+	struct u3_nvme_passthru_cmd cmd = {
 		.opcode		= 0x80,
 		.flags		= 0,
 		.rsvd1		= 0,
@@ -164,7 +164,7 @@ int zns_format()
 		.result		= 0,
 	};
 
-	result = ioctl(zns_info -> fd, NVME_IOCTL_ADMIN_CMD, &cmd);
+	result = ioctl(zns_info -> fd, U3_NVME_IOCTL_ADMIN_CMD, &cmd);
 
 	if(result == -1)
 	{
@@ -175,7 +175,7 @@ int zns_format()
 	return 0;
 }
 
-int zns_management_send(int zone_number, __u8 value)
+int u3_zns_management_send(int zone_number, __u8 value)
 {	
 	int result;
 	__le64 slba = 0;
@@ -201,7 +201,7 @@ int zns_management_send(int zone_number, __u8 value)
 	__le32 slba1 = slba & t;
 	__le32 slba2 = slba >> 32;
 
-	struct nvme_passthru_cmd cmd = {
+	struct u3_nvme_passthru_cmd cmd = {
 		.opcode		= 0x79,
 		.flags		= 0,
 		.rsvd1		= 0,
@@ -222,7 +222,7 @@ int zns_management_send(int zone_number, __u8 value)
 		.result		= 0,
 	};
 
-	result = ioctl(zns_info -> fd, NVME_IOCTL_IO_CMD, &cmd);
+	result = ioctl(zns_info -> fd, U3_NVME_IOCTL_IO_CMD, &cmd);
 
 	if(result == -1)
 	{
@@ -238,25 +238,25 @@ int zns_management_send(int zone_number, __u8 value)
 	return 0;
 }
 
-void zns_set_zone(int zone_number, __u8 value)
+void u3_zns_set_zone(int zone_number, __u8 value)
 {
-	zns_management_send(zone_number, value);
+	u3_zns_management_send(zone_number, value);
 }
 
-void* zns_management_recv(unsigned int report_zone_cnt, unsigned int partial, unsigned int option, unsigned int slba)
+void* u3_zns_management_recv(unsigned int report_zone_cnt, unsigned int partial, unsigned int option, unsigned int slba)
 {	
 	int result;
 	__u64 t = 0xffffffff;
 	__le32 slba1 = slba & t;
 	__le32 slba2 = slba >> 32;
 
-	__u32 cdw12 = ((report_zone_cnt + 1)* sizeof(struct zone_descriptor));
+	__u32 cdw12 = ((report_zone_cnt + 1)* sizeof(struct u3_zone_descriptor));
 	__u32 cdw13 = 0;
 	cdw13 = cdw13 | (partial << 16) | (option << 8);
 
-	void *buffer = malloc((report_zone_cnt + 1) * sizeof(struct zone_descriptor));
+	void *buffer = malloc((report_zone_cnt + 1) * sizeof(struct u3_zone_descriptor));
 
-	struct nvme_passthru_cmd cmd = {
+	struct u3_nvme_passthru_cmd cmd = {
 		.opcode		= 0x7A,
 		.flags		= 0,
 		.rsvd1		= 0,
@@ -266,7 +266,7 @@ void* zns_management_recv(unsigned int report_zone_cnt, unsigned int partial, un
 		.metadata	= (__u64)(uintptr_t) 0,
 		.addr		= (__u64)(uintptr_t) buffer,
 		.metadata_len	= 0,
-		.data_len	= (report_zone_cnt + 1) * sizeof(struct zone_descriptor),
+		.data_len	= (report_zone_cnt + 1) * sizeof(struct u3_zone_descriptor),
 		.cdw10		= slba1,
 		.cdw11		= slba2,
 		.cdw12		= cdw12,
@@ -277,7 +277,7 @@ void* zns_management_recv(unsigned int report_zone_cnt, unsigned int partial, un
 		.result		= 0,
 	};
 
-	result = ioctl(zns_info -> fd, NVME_IOCTL_IO_CMD, &cmd);
+	result = ioctl(zns_info -> fd, U3_NVME_IOCTL_IO_CMD, &cmd);
 
 	if(result == -1)
 	{
@@ -285,14 +285,14 @@ void* zns_management_recv(unsigned int report_zone_cnt, unsigned int partial, un
 		exit(0);
 	}
 
-	__le64 *temp = buffer;
+	__le64 *temp = (__le64 *)buffer;
 
 	return buffer;
 }
 
-void zns_get_zone_desc(unsigned int partial, unsigned int option, unsigned int from_zone, unsigned int report_zone_cnt, bool init)
+void u3_zns_get_zone_desc(unsigned int partial, unsigned int option, unsigned int from_zone, unsigned int report_zone_cnt, bool init)
 {
-	struct zone_descriptor* desc_buf;
+	struct u3_zone_descriptor* desc_buf;
 	void* buf = 0;
 	__le64* temp = 0;
 	__le64 report_zone_num = 0;
@@ -307,17 +307,17 @@ void zns_get_zone_desc(unsigned int partial, unsigned int option, unsigned int f
 
 		for(unsigned int index = 0; index < zns_info -> max_zone_cnt; index += report_zone_num)
 		{
-			buf = zns_management_recv(REPORT_NUM, partial, option, slba);
+			buf = u3_zns_management_recv(REPORT_NUM, partial, option, slba);
 
-			temp = buf;
+			temp = (__le64 *)buf;
 			report_zone_num = temp[0];
 			//printf("Init - reported zone count : %u\n", index);
 			real_max_zone_cnt += report_zone_num;
 
-			desc_buf = buf;
+			desc_buf = (struct u3_zone_descriptor *)buf;
 			for(int i = 0; i < report_zone_num; i++)
 			{
-				memcpy(&zone_desc_list[index + i], &desc_buf[i + 1], sizeof(struct zone_descriptor));
+				memcpy(&zone_desc_list[index + i], &desc_buf[i + 1], sizeof(struct u3_zone_descriptor));
 			}
 
 			free(buf);
@@ -334,18 +334,18 @@ void zns_get_zone_desc(unsigned int partial, unsigned int option, unsigned int f
 			for(unsigned int index = from_zone; index < from_zone + report_zone_cnt; index += report_zone_num)
 			{
 				if(temp_report_zone_cnt > REPORT_NUM)
-					buf = zns_management_recv(REPORT_NUM, partial, option, slba);
+					buf = u3_zns_management_recv(REPORT_NUM, partial, option, slba);
 				else
-					buf = zns_management_recv(temp_report_zone_cnt, partial, option, slba);
+					buf = u3_zns_management_recv(temp_report_zone_cnt, partial, option, slba);
 
-				temp = buf;
+				temp = (__le64 *)buf;
 				report_zone_num = temp[0];
 				real_max_zone_cnt += report_zone_num;
 
-				desc_buf = buf;
+				desc_buf = (struct u3_zone_descriptor *)buf;
 				for(int i = 0; i < report_zone_num; i++)
 				{
-					memcpy(&zone_desc_list[index + i], &desc_buf[i + 1], sizeof(struct zone_descriptor));
+					memcpy(&zone_desc_list[index + i], &desc_buf[i + 1], sizeof(struct u3_zone_descriptor));
 				}
 
 				free(buf);
@@ -357,7 +357,7 @@ void zns_get_zone_desc(unsigned int partial, unsigned int option, unsigned int f
 	}
 }
 
-void print_zone_desc(unsigned int total_zone)
+void u3_print_zone_desc(unsigned int total_zone)
 {   
 	printf("ZNS SSD Zone Info\n");
 	//printf("%u\n", zns_info -> max_zone_cnt);
@@ -394,7 +394,7 @@ int u3_zns_write_request(void * write_data, __le16 nblocks, __le32 data_size, __
 {
 	int result;
 
-	struct nvme_user_io io= {
+	struct u3_nvme_user_io io= {
 		.opcode		= 0x01,
 		.flags		= 0,
 		.control	= 0x0400,
@@ -405,11 +405,11 @@ int u3_zns_write_request(void * write_data, __le16 nblocks, __le32 data_size, __
 		.slba		= slba,
 		.dsmgmt		= 0,
 		.reftag		= 0,
-		.appmask	= 0,
 		.apptag		= 0,
+		.appmask	= 0,
 	};
 
-	result = ioctl(zns_info -> fd, NVME_IOCTL_SUBMIT_IO, &io);
+	result = ioctl(zns_info -> fd, U3_NVME_IOCTL_SUBMIT_IO, &io);
 	if(result != 0)
 	{
 		printf("ZNS SSD Write Fail, error code : %#"PRIx64"\n", result);
@@ -430,7 +430,7 @@ int u3_zns_write(void * write_data, int data_size, int zone_number)
 	else
 		nblocks = data_size / 512;
 
-	result = zns_write_request(write_data, nblocks, data_size, zone_desc_list[zone_number].wp);
+	result = u3_zns_write_request(write_data, nblocks, data_size, zone_desc_list[zone_number].wp);
 	zone_desc_list[zone_number].wp += nblocks + 1;
 
 	return result;
@@ -440,7 +440,7 @@ int u3_zns_read_request(void * read_data, int nblocks, __u64 slba)
 {
 	int result;
 
-	struct nvme_user_io io = {
+	struct u3_nvme_user_io io = {
 		.opcode		= 0x02,
 		.flags		= 0,
 		.control	= 0,
@@ -451,11 +451,11 @@ int u3_zns_read_request(void * read_data, int nblocks, __u64 slba)
 		.slba		= slba,
 		.dsmgmt		= 0,
 		.reftag		= 0,
-		.appmask	= 0,
 		.apptag		= 0,
+		.appmask	= 0,
 	};
 
-	result = ioctl(zns_info -> fd, NVME_IOCTL_SUBMIT_IO, &io);
+	result = ioctl(zns_info -> fd, U3_NVME_IOCTL_SUBMIT_IO, &io);
 	if(result == -1)
 	{
 		printf("ZNS SSD Read Fail : %#x\n");
@@ -478,7 +478,7 @@ int u3_zns_read(void * read_data, int data_size, int zone_number, __u64 offset)
 		nblocks = data_size / 512;
 
 	read_lba = zone_desc_list[zone_number].start_lba + offset;
-	result = zns_read_request(read_data, nblocks, read_lba);
+	result = u3_zns_read_request(read_data, nblocks, read_lba);
 
 	return result;
 }
@@ -490,7 +490,7 @@ int zns_set_zone_change_notification()
 	__u32 cdw11 = 0;
 	cdw11 = cdw11 | 1 << 27;
 
-	struct nvme_passthru_cmd cmd = {
+	struct u3_nvme_passthru_cmd cmd = {
 		.opcode		= 0x09,
 		.flags		= 0,
 		.rsvd1		= 0,
@@ -511,7 +511,7 @@ int zns_set_zone_change_notification()
 		.result		= 0,
 	};
 
-	result = ioctl(zns_info -> fd, NVME_IOCTL_ADMIN_CMD, &cmd);
+	result = ioctl(zns_info -> fd, U3_NVME_IOCTL_ADMIN_CMD, &cmd);
 
 	if(result == -1)
 	{

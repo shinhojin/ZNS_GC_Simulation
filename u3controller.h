@@ -140,33 +140,33 @@ typedef __u64 __bitwise __be64;
 typedef __u16 __bitwise __sum16;
 typedef __u32 __bitwise __wsum;
 
-static inline __le16 cpu_to_le16(uint16_t x)
+static inline __le16 u3_cpu_to_le16(uint16_t x)
 {
 	return (__force __le16)htole16(x);
 }
-static inline __le32 cpu_to_le32(uint32_t x)
+static inline __le32 u3_cpu_to_le32(uint32_t x)
 {
 	return (__force __le32)htole32(x);
 }
-static inline __le64 cpu_to_le64(uint64_t x)
+static inline __le64 u3_cpu_to_le64(uint64_t x)
 {
 	return (__force __le64)htole64(x);
 }
 
-static inline uint16_t le16_to_cpu(__le16 x)
+static inline uint16_t u3_le16_to_cpu(__le16 x)
 {
 	return le16toh((__force __u16)x);
 }
-static inline uint32_t le32_to_cpu(__le32 x)
+static inline uint32_t u3_le32_to_cpu(__le32 x)
 {
 	return le32toh((__force __u32)x);
 }
-static inline uint64_t le64_to_cpu(__le64 x)
+static inline uint64_t u3_le64_to_cpu(__le64 x)
 {
 	return le64toh((__force __u64)x);
 }
 
-struct nvme_passthru_cmd {
+struct u3_nvme_passthru_cmd {
 	__u8	opcode;
 	__u8	flags;
 	__u16	rsvd1;
@@ -187,7 +187,7 @@ struct nvme_passthru_cmd {
 	__u32	result;
 };
 
-struct nvme_user_io {
+struct u3_nvme_user_io {
 	__u8	opcode;
 	__u8	flags;
 	__u16	control;
@@ -202,52 +202,52 @@ struct nvme_user_io {
 	__u16	appmask;
 };
 
-enum nvme_opcode {
-	nvme_cmd_flush		= 0x00,
-	nvme_cmd_write		= 0x01,
-	nvme_cmd_read		= 0x02,
-	nvme_cmd_write_uncor	= 0x04,
-	nvme_cmd_compare	= 0x05,
-	nvme_cmd_zone_info	= 0x06,
-	nvme_cmd_write_zeroes	= 0x08,
-	nvme_cmd_dsm		= 0x09,
-	nvme_cmd_verify		= 0x0c,
-	nvme_cmd_resv_register	= 0x0d,
-	nvme_cmd_resv_report	= 0x0e,
-	nvme_cmd_resv_acquire	= 0x11,
-	nvme_cmd_resv_release	= 0x15,
+enum u3_nvme_opcode {
+	u3_nvme_cmd_flush		= 0x00,
+	u3_nvme_cmd_write		= 0x01,
+	u3_nvme_cmd_read		= 0x02,
+	u3_nvme_cmd_write_uncor	= 0x04,
+	u3_nvme_cmd_compare	= 0x05,
+	u3_nvme_cmd_zone_info	= 0x06,
+	u3_nvme_cmd_write_zeroes	= 0x08,
+	u3_nvme_cmd_dsm		= 0x09,
+	u3_nvme_cmd_verify		= 0x0c,
+	u3_nvme_cmd_resv_register	= 0x0d,
+	u3_nvme_cmd_resv_report	= 0x0e,
+	u3_nvme_cmd_resv_acquire	= 0x11,
+	u3_nvme_cmd_resv_release	= 0x15,
 };
 
-enum nvme_admin_opcode {
-	nvme_admin_delete_sq		= 0x00,
-	nvme_admin_create_sq		= 0x01,
-	nvme_admin_get_log_page		= 0x02,
-	nvme_admin_delete_cq		= 0x04,
-	nvme_admin_create_cq		= 0x05,
-	nvme_admin_identify		= 0x06,
-	nvme_admin_abort_cmd		= 0x08,
-	nvme_admin_set_features		= 0x09,
-	nvme_admin_get_features		= 0x0a,
-	nvme_admin_async_event		= 0x0c,
-	nvme_admin_ns_mgmt		= 0x0d,
-	nvme_admin_activate_fw		= 0x10,
-	nvme_admin_download_fw		= 0x11,
-	nvme_admin_dev_self_test	= 0x14,
-	nvme_admin_ns_attach		= 0x15,
-	nvme_admin_keep_alive		= 0x18,
-	nvme_admin_directive_send	= 0x19,
-	nvme_admin_directive_recv	= 0x1a,
-	nvme_admin_virtual_mgmt		= 0x1c,
-	nvme_admin_nvme_mi_send		= 0x1d,
-	nvme_admin_nvme_mi_recv		= 0x1e,
-	nvme_admin_dbbuf		= 0x7C,
-	nvme_admin_format_nvm		= 0x80,
-	nvme_admin_security_send	= 0x81,
-	nvme_admin_security_recv	= 0x82,
-	nvme_admin_sanitize_nvm		= 0x84,
+enum u3_nvme_admin_opcode {
+	u3_nvme_admin_delete_sq		= 0x00,
+	u3_nvme_admin_create_sq		= 0x01,
+	u3_nvme_admin_get_log_page		= 0x02,
+	u3_nvme_admin_delete_cq		= 0x04,
+	u3_nvme_admin_create_cq		= 0x05,
+	u3_nvme_admin_identify		= 0x06,
+	u3_nvme_admin_abort_cmd		= 0x08,
+	u3_nvme_admin_set_features		= 0x09,
+	u3_nvme_admin_get_features		= 0x0a,
+	u3_nvme_admin_async_event		= 0x0c,
+	u3_nvme_admin_ns_mgmt		= 0x0d,
+	u3_nvme_admin_activate_fw		= 0x10,
+	u3_nvme_admin_download_fw		= 0x11,
+	u3_nvme_admin_dev_self_test	= 0x14,
+	u3_nvme_admin_ns_attach		= 0x15,
+	u3_nvme_admin_keep_alive		= 0x18,
+	u3_nvme_admin_directive_send	= 0x19,
+	u3_nvme_admin_directive_recv	= 0x1a,
+	u3_nvme_admin_virtual_mgmt		= 0x1c,
+	u3_nvme_admin_nvme_mi_send		= 0x1d,
+	u3_nvme_admin_nvme_mi_recv		= 0x1e,
+	u3_nvme_admin_dbbuf		= 0x7C,
+	u3_nvme_admin_format_nvm		= 0x80,
+	u3_nvme_admin_security_send	= 0x81,
+	u3_nvme_admin_security_recv	= 0x82,
+	u3_nvme_admin_sanitize_nvm		= 0x84,
 };
 
-struct nvme_id_power_state {
+struct u3_nvme_id_power_state {
 	__le16			max_power;	/* centiwatts */
 	__u8			rsvd2;
 	__u8			flags;
@@ -265,7 +265,7 @@ struct nvme_id_power_state {
 	__u8			rsvd23[9];
 };
 
-struct nvme_id_ctrl {
+struct u3_nvme_id_ctrl {
 	__le16			vid;
 	__le16			ssvid;
 	char			sn[20];
@@ -342,31 +342,24 @@ struct nvme_id_ctrl {
 	__u8			ctrattr;
 	__u8			msdbd;
 	__u8			rsvd1804[244];
-	struct nvme_id_power_state	psd[32];
+	struct u3_nvme_id_power_state	psd[32];
 	__u8			vs[1024];
 };
 
-struct nvme_lbaf {
+struct u3_nvme_lbaf {
 	__le16			ms;
 	__u8			ds;
 	__u8			rp;
 };
 
-struct zone_format {
+struct u3_zone_format {
 	__le64			zsze;
 	__le16			lbafs;
 	__u8        zdes;
 	__u8        rsrvd[5];
 };
-/*
-struct zone_format {
-	__u8        rsrvd[5];//3776
-	__u8        zdes;//3816
-	__le16			lbafs;//3824
-	__le64			zsze;//3840
-};
-*/
-struct nvme_id_ns {
+
+struct u3_nvme_id_ns {
 	__le64			nsze;
 	__le64			ncap;
 	__le64			nuse;//24
@@ -401,7 +394,7 @@ struct nvme_id_ns {
 	__le16			endgid;
 	__u8        nguid[16];//120
 	__u8      eui64[8];//128
-	struct nvme_lbaf	lbaf[16];//128+64 == 192
+	struct u3_nvme_lbaf	lbaf[16];//128+64 == 192
 	__u8			rsvd192[64];//256byte
 	//hoon
 	__u8			zfi; //257
@@ -414,7 +407,7 @@ struct nvme_id_ns {
 	__le32    zal; // 292
 	__le32    rrl; // 296
 	__u8			rsvd296[3480]; //3776
-	struct zone_format zonef[4]; //3776 + 64 == 3840
+	struct u3_zone_format zonef[4]; //3776 + 64 == 3840
 	__u8			vs[256];//4096 byte
 	//4096 byte
 
@@ -422,12 +415,12 @@ struct nvme_id_ns {
 	//__u8			vs[3712];
 };
 
-struct controller_identify{
+struct u3_controller_identify{
 	__u8   zamds;                           //Zone Append Maximum Data Size(ZAMDS), minimum memory size * 2^n
 	__u8	 rsvd[4095];                                //Reserved
 };
 
-struct zns_info{
+struct u3_zns_info{
 	int fd;
 	__le64			ns_size;
 	__le64			ns_cap;
@@ -447,12 +440,12 @@ struct zns_info{
 	unsigned int opened_zone_num;
 	//__u8	     max_append_size;
 	//struct nvme_lbaf	lbaf;
-	struct zone_format zonef;
+	struct u3_zone_format zonef;
 
 	unsigned int max_zone_cnt;
 };
 
-struct zone_descriptor {
+struct u3_zone_descriptor {
 	/*64 bytes*/
 	__u8		type : 4;       //Zone Type(ZT)
 	__u8		rsvd0 : 4;      //Reserved
@@ -480,58 +473,58 @@ struct zone_descriptor {
 
 
 //get_log
-struct zone_identify {
+struct u3_zone_identify {
 	__u64   zslba;  
 };
 
-struct lba_format_extension_identify{
+struct u3_lba_format_extension_identify{
 	/*128byte*/
 	__u8   zone_size[64];                           //Zone Size
 	__u8   zone_descriptor_extension_size[8];       //Zone Descriptor Extension Size
 	__u8	 rsvd[56];                                //Reserved
 };
 
-struct zns_block {
+struct u3_zns_block {
 	__u8 data[BLOCK_SIZE];
 };
 
-struct zns_sector {
-	struct zns_block data[8];
+struct u3_zns_sector {
+	struct u3_zns_block data[8];
 };
 
-#define nvme_admin_cmd nvme_passthru_cmd
+#define u3_nvme_admin_cmd u3_nvme_passthru_cmd
 
-#define NVME_IOCTL_ID		_IO('N', 0x40)
-#define NVME_IOCTL_ADMIN_CMD	_IOWR('N', 0x41, struct nvme_admin_cmd)
-#define NVME_IOCTL_SUBMIT_IO	_IOW('N', 0x42, struct nvme_user_io)
-#define NVME_IOCTL_IO_CMD	_IOWR('N', 0x43, struct nvme_passthru_cmd)
-#define NVME_IOCTL_RESET	_IO('N', 0x44)
-#define NVME_IOCTL_SUBSYS_RESET	_IO('N', 0x45)
-#define NVME_IOCTL_RESCAN	_IO('N', 0x46)
+#define U3_NVME_IOCTL_ID		_IO('N', 0x40)
+#define U3_NVME_IOCTL_ADMIN_CMD	_IOWR('N', 0x41, struct u3_nvme_admin_cmd)
+#define U3_NVME_IOCTL_SUBMIT_IO	_IOW('N', 0x42, struct u3_nvme_user_io)
+#define U3_NVME_IOCTL_IO_CMD	_IOWR('N', 0x43, struct u3_nvme_passthru_cmd)
+#define U3_NVME_IOCTL_RESET	_IO('N', 0x44)
+#define U3_NVME_IOCTL_SUBSYS_RESET	_IO('N', 0x45)
+#define U3_NVME_IOCTL_RESCAN	_IO('N', 0x46)
 
-void* identify_ns(int fd, void * data);
-void* identify_ctrl(int fd, void * data);
-int zns_get_info(char * dev);
-void print_zns_info();
-int zns_format();
-int zns_management_send(int zone_number, __u8 value);
-void zns_set_zone(int zone_number, __u8 value);
-void* zns_management_recv(unsigned int report_num, unsigned int partial, unsigned int option, unsigned int slba);
-void zns_get_zone_desc(unsigned int partial, unsigned int option, unsigned int from_zone_num, unsigned int report_zone_cnt, bool init);
-void print_zone_desc(unsigned int total_zone);
+void* u3_identify_ns(int fd, void * data);
+void* u3_identify_ctrl(int fd, void * data);
+int u3_zns_get_info(char * dev);
+void u3_print_zns_info();
+int u3_zns_format();
+int u3_zns_management_send(int zone_number, __u8 value);
+void u3_zns_set_zone(int zone_number, __u8 value);
+void* u3_zns_management_recv(unsigned int report_num, unsigned int partial, unsigned int option, unsigned int slba);
+void u3_zns_get_zone_desc(unsigned int partial, unsigned int option, unsigned int from_zone_num, unsigned int report_zone_cnt, bool init);
+void u3_print_zone_desc(unsigned int total_zone);
 int u3_zns_write_request(void * write_data, __le16 nblocks, __le32 data_size, __u64 slba);
 int u3_zns_write(void * write_data, int data_size, int zone_number);
 //int zns_append(unsigned int zone_number, __u8 value);
 int u3_zns_read_request(void * read_data, int nblocks, __u64 slba);
 int u3_zns_read(void * read_data, int data_size, int zone_number, __u64 offset);
-int zns_set_zone_change_notification();
+int u3_zns_set_zone_change_notification();
 
-int zns_get_async_event();
-int zns_get_log(int fd, void * data, __u64 zid);
-int check_completion_queue();
+int u3_zns_get_async_event();
+int u3_zns_get_log(int fd, void * data, __u64 zid);
+int u3_check_completion_queue();
 
-struct zone_descriptor *zone_desc_list;
-struct zns_info *zns_info;
+struct u3_zone_descriptor *zone_desc_list;
+struct u3_zns_info *zns_info;
 
 #ifdef __cpluscplus
 }

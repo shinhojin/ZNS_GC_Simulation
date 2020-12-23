@@ -9,7 +9,7 @@
 #include <cmath>
 
 ZNS_Simulation::ZNS_Simulation(char * path, int zone_count, float zone_util, int update_count) {
-        zns_info_list = (struct zns_share_info *) malloc(sizeof(struct zns_share_info));
+        zns_info_list = (struct m2_zns_share_info *) malloc(sizeof(struct m2_zns_share_info));
         m2_zns_init(path, zns_info_list);
 
         //Workload Argument
@@ -519,12 +519,6 @@ int * ZNS_Simulation::request_sequential_workload() {
 
 int * ZNS_Simulation::request_random_workload() {
     update_bitmap = workload_creator->create_random_workload(Zone_bitmap, Segment_bitmap, Block_bitmap);
-
-    return update_bitmap;
-} 
-
-int * ZNS_Simulation::request_zipfian_workload() {
-    update_bitmap = workload_creator->create_zipfian_workload(Zone_bitmap, Segment_bitmap, Block_bitmap);
 
     return update_bitmap;
 }

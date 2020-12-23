@@ -6,7 +6,7 @@
 #include <time.h>
 #include <math.h>
 
-Workload_Creator::Workload_Creator(zns_share_info * zonelist, int zone_count, int update_count, float zone_util) {
+Workload_Creator::Workload_Creator(m2_zns_share_info * zonelist, int zone_count, int update_count, float zone_util) {
     this->zns_info_list = zonelist;
     this->zone_util = zone_util;
     this->Zone_count = zone_count;
@@ -86,9 +86,6 @@ int *Workload_Creator::create_random_workload(SIM_Zone * Zone_bitmap, SIM_Segmen
     return update_block;
 }
 
-int *Workload_Creator::create_zipfian_workload(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap) {
-    update_block = new int[Update_count];
-}
 
 int Workload_Creator::update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap, int * _update_bitmap) {
     int start_block = 0;

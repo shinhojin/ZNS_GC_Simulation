@@ -47,7 +47,7 @@ class Block_data {
 
 class ZNS_Simulation {
     //ZNS SSD init variable
-    struct zns_share_info * zns_info_list;
+    struct m2_zns_share_info * zns_info_list;
 
     //Setting ZNS SSD Argument
     int Zone_count;
@@ -98,7 +98,6 @@ public :
     //request workload function
     int *request_sequential_workload();
     int *request_random_workload();
-    int *request_zipfian_workload();
     void request_update_workload();
 };
 

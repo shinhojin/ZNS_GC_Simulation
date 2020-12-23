@@ -19,9 +19,9 @@ int main(int argc, char * argv[]) {
 	memset(test_data, 'W', _192KB * 1);
 
     //ZNS SSD Init
-	zns_get_info("/dev/nvme0n1");
+	u3_zns_get_info("/dev/nvme0n1");
     cout << "do" << endl;
-	zns_get_zone_desc(REPORT_ALL, REPORT_ALL_STATE, 0, 0, true);
+	u3_zns_get_zone_desc(REPORT_ALL, REPORT_ALL_STATE, 0, 0, true);
 
     u3_zns_write(test_data, _192KB * 1, 0);
 
