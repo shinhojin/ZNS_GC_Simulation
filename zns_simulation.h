@@ -82,10 +82,17 @@ public :
     void init_segment_bitmap();
     void init_zone_bitmap();
 
+    //common function
     int read_valid_data(int i_block);
     int read_valid_data_lsm(int i_block);
-    int basic_zgc();
-    int lsm_zgc();
+
+    //M2 ZNS SSD GC
+    int m2_basic_zgc();
+    int m2_lsm_zgc();
+
+    //U3 ZNS SSD GC
+    int u3_basic_zgc();
+    int u3_lsm_zgc();
 
     int init_zones_write(int numofzones);
     void init_zone_reset(int numofzones);

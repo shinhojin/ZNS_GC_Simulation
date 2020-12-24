@@ -30,19 +30,11 @@ Workload_Creator::Workload_Creator(int zone_count, int dev_num, float zone_util)
 }
 
 int *Workload_Creator::create_sequential_workload(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap) {
-    //update_block = new int[Update_count];
     update_block = new int[cal_util_block];
     int total_block_num = Zone_count * 512 * 512 - 1;
     int i_block = 0, n_zone_block;
-
     int block_off, cond_off = 0;
-/*
-    if (Update_count > total_block_num) {
-        cout << "Too many update count!" << endl;
-        cout << "Please set update count under " << total_block_num << endl;
-        exit(0);
-    }
-*/
+
     for (int i_zone = 0; i_zone < Zone_count; i_zone++) {
         block_off = Zone_bitmap[i_zone].get_i_start_block();
         if (Dev_num == 1)
@@ -60,11 +52,6 @@ int *Workload_Creator::create_sequential_workload(SIM_Zone * Zone_bitmap, SIM_Se
             exit(0);
         }
     }
-    //cout << n_zone_block << endl;
-    // for (int i = 0; i < 314574; i++) {
-    //     cout << update_block[i] << endl;
-    // }
-
 
     return update_block;    
 }
@@ -83,13 +70,6 @@ int *Workload_Creator::create_random_workload(SIM_Zone * Zone_bitmap, SIM_Segmen
     else if (Dev_num == 2)
         zone_in_block = U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT;
 
-/*
-    if (Update_count > total_block_num) {
-        cout << "Too many update count!" << endl;
-        cout << "Please set update count under " << total_block_num << endl;
-        exit(0);
-    }
-*/
     for (int i_zone = 0; i_zone < Zone_count; i_zone++) {
         block_off = Zone_bitmap[i_zone].get_i_start_block();
         start_block = Zone_bitmap[i_zone].get_i_start_block();
@@ -98,7 +78,6 @@ int *Workload_Creator::create_random_workload(SIM_Zone * Zone_bitmap, SIM_Segmen
         else if (Dev_num == 2)
             n_zone_block = (int)ceil(U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
         cond_off = block_off + n_zone_block;
-        //cout << cond_off << endl;
         for(;block_off < cond_off; block_off++) {
             update_block[i_block] = start_block + rand() % zone_in_block;
             i_block++;
@@ -112,8 +91,7 @@ int *Workload_Creator::create_random_workload(SIM_Zone * Zone_bitmap, SIM_Segmen
     return update_block;
 }
 
-
-int Workload_Creator::update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap, int * _update_bitmap) {
+int Workload_Creator::m2_update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap, int * _update_bitmap) {
     int start_block = 0;
     int end_block;
     int update_cnt = 0;
@@ -125,19 +103,7 @@ int Workload_Creator::update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment
     void * dummy_data = new char[ZNS_BLOCK_SIZE * 32];
     memset(dummy_data, 66, ZNS_BLOCK_SIZE * 32);
 
-    if (Dev_num == 1)
-        end_block = Zone_count * M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT;
-    else if (Dev_num == 2)
-        end_block = Zone_count * U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT;
-
-/*
-    cout << "Print Zone Utilization Before Update" << endl;
-    cout<< "------------------------------------------------------" <<endl;
-    for (int i = 0; i < Zone_count; i++) {
-        cout << "Zone " << i << " : " << Zone_bitmap[i].get_utilization() << endl; 
-    }
-    cout<< "------------------------------------------------------" <<endl;
-*/
+    end_block = Zone_count * M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT;
 
     cout << "Update in memory ...ing" << endl;
     for (int i_block = start_block; i_block < end_block; i_block++) {
@@ -145,14 +111,10 @@ int Workload_Creator::update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment
             if (i_block == _update_bitmap[j_block]) {
                 Block_bitmap[i_block].set_state(INVALID_BLOCK);
                 update_cnt++;
-                //cout << "through here 1" << endl;
                 break;
             }
         }
-        //cnt++;
-        //cout << cnt << endl;
         if (update_cnt == 32) {
-            //cout << "through here 2" << endl;
             io_result = m2_zns_write(zns_info_list, dummy_data, (512 * 8 * update_cnt), sel_zone, write_offset * 8);
             if (io_result == 0) {
                 write_offset += update_cnt;
@@ -169,7 +131,6 @@ int Workload_Creator::update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment
             cout << "Up to Max size of Zone, Move to next Zone!!" << endl;
             cout << "write zone : " << sel_zone << endl;
         }
-        //cout << "through here 3" << endl;
     }
     if (update_cnt < 32) {
         io_result = m2_zns_write(zns_info_list, dummy_data, (512 * 8 * 32), sel_zone, write_offset * 8);
@@ -186,7 +147,69 @@ int Workload_Creator::update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment
         sel_zone++;
         write_offset = 0;
         cout << "Up to Max size of Zone, Move to next Zone!!" << endl;
-        cout << "write zone : " << sel_zone << endl;
+        cout << "Write zone : " << sel_zone << endl;
+    }
+    cout << "Finish Update in memory" << endl;
+
+    return write_offset;
+}
+
+int Workload_Creator::u3_update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap, int * _update_bitmap) {
+    int start_block = 0;
+    int end_block;
+    int update_cnt = 0;
+    int io_result = 0;
+    int sel_zone = Zone_count;
+    int write_offset = 0;
+    int cnt = 0;
+    
+    void * dummy_data = new char[ZNS_BLOCK_SIZE * 48];
+    memset(dummy_data, 66, ZNS_BLOCK_SIZE * 48);
+
+    end_block = Zone_count * U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT;
+    cout << "Update in memory ...ing" << endl;
+    for (int i_block = start_block; i_block < end_block; i_block++) {
+        for (int j_block = 0; j_block < cal_util_block; j_block++) {
+            if (i_block == _update_bitmap[j_block]) {
+                Block_bitmap[i_block].set_state(INVALID_BLOCK);
+                update_cnt++;
+                break;
+            }
+        }
+        if (update_cnt == 48) {
+            io_result = u3_zns_write(dummy_data, _192KB, sel_zone);
+            if (io_result == 0) {
+                write_offset += update_cnt;
+                update_cnt = 0;
+            } else {
+                cout << "ZNS SSD Write Fail" << endl;
+                exit(0);
+            }
+        }
+        if (write_offset == (512 * 36)) {
+            u3_zns_set_zone(sel_zone, MAN_FINISH);
+            sel_zone++;
+            write_offset = 0;
+            cout << "Up to Max size of Zone, Move to next Zone!!" << endl;
+            cout << "write zone : " << sel_zone << endl;
+        }
+    }
+    if (update_cnt < 36) {
+        io_result = u3_zns_write(dummy_data, _192KB, sel_zone);
+        if (io_result == 0) {
+            write_offset += 36;
+            update_cnt = 0;
+        } else {
+            cout << "ZNS SSD Write Fail" << endl;
+            exit(0);
+        }
+    }
+    if (write_offset == (512 * 36)) {
+        u3_zns_set_zone(sel_zone, MAN_FINISH);
+        sel_zone++;
+        write_offset = 0;
+        cout << "Up to Max size of Zone, Move to next Zone!!" << endl;
+        cout << "Write zone : " << sel_zone << endl;
     }
     cout << "Finish Update in memory" << endl;
 

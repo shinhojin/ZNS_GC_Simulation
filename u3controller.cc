@@ -6,6 +6,9 @@
 
 #include "u3controller.h"
 
+struct u3_zone_descriptor *zone_desc_list;
+struct u3_zns_info *zns_info;
+
 void* u3_identify_ns(int fd, void * data)
 {	
 	int result;
