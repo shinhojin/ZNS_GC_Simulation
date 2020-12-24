@@ -4,11 +4,11 @@
 //Argument
 #define ARGUMENT_COUNT 7      //All Arugment + filename
 #define DEV_NAME 1
-#define ZONE_COUNT 2
-#define SETTING_DEV_UTILIZATION 3
-#define GC_NUMBER 4
-#define WORKLOAD_NUM 5
-#define DEV_NUM 6
+#define DEV_NUM 2
+#define ZONE_COUNT 3
+#define SETTING_DEV_UTILIZATION 4
+#define GC_NUMBER 5
+#define WORKLOAD_NUM 6
 
 using namespace std;
 

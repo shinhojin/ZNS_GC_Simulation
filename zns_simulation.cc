@@ -9,18 +9,36 @@
 #include <cmath>
 
 ZNS_Simulation::ZNS_Simulation(char * path, int zone_count, float zone_util, int dev_num) {
-        zns_info_list = (struct m2_zns_share_info *) malloc(sizeof(struct m2_zns_share_info));
-        m2_zns_init(path, zns_info_list);
+        if (dev_num == 1) {// M2 ZNS SSD Init
+            zns_info_list = (struct m2_zns_share_info *) malloc(sizeof(struct m2_zns_share_info));
+            m2_zns_init(path, zns_info_list);
+        } else if (dev_num == 2) {// U3 ZNS SSD Init
+            u3_zns_get_info(path);
+            u3_zns_get_zone_desc(REPORT_ALL, REPORT_ALL_STATE, 0, 0, true);
+        } else {// Dev_num error return
+            cout << "This not a SSD number, please input correct SSD number!" << endl;
+            cout << "Error for {DEV_NUM}" << endl;
+            exit(0);
+        }
 
         //Workload Argument
-        workload_creator = new Workload_Creator(zns_info_list, zone_count, dev_num, zone_util);
+        if (dev_num == 1) {// M2 ZNS SSD
+            workload_creator = new Workload_Creator(zns_info_list, zone_count, dev_num, zone_util);
+        } else if (dev_num == 2) {// U3 ZNS SSD
+            workload_creator = new Workload_Creator(zone_count, dev_num, zone_util);
+        }
         
         //init Argument
         Zone_count = zone_count;
         Zone_util = zone_util;
         Dev_num = dev_num;
-        Segment_count = SEGMENT_COUNT_IN_ZONE;
-        Block_count = BLOCK_COUNT_IN_SEGMENT;
+        if (dev_num == 1) {// M2 ZNS SSD Spec
+            Segment_count = M2_SEGMENT_COUNT_IN_ZONE;
+            Block_count = M2_BLOCK_COUNT_IN_SEGMENT;
+        } else if (dev_num == 2) {// U3 ZNS SSD Spec
+            Segment_count = U3_SEGMENT_COUNT_IN_ZONE;
+            Block_count = U3_BLOCK_COUNT_IN_SEGMENT;
+        }
         total_segment_count = Zone_count * Segment_count;
         total_block_count = total_segment_count * Block_count;
         
@@ -45,7 +63,14 @@ void ZNS_Simulation::init_block_bitmap() {
     // set data valid by using utilization
     for(int i=0; i<Zone_count; i++) {
         int start_block = Zone_bitmap[i].get_i_start_block();
-        int end_block = start_block + (SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT);
+        int end_block;
+        
+        if (Dev_num == 1) {
+            end_block = start_block + (M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT);
+        } else if (Dev_num == 2) {
+            end_block = start_block + (U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT);
+        }
+
         for(int j = start_block; j <= end_block; j++) {
             Block_bitmap[j].set_block_info(j);
             Block_bitmap[j].set_state(VALID_BLOCK);
@@ -69,8 +94,14 @@ void ZNS_Simulation::init_segment_bitmap() {
         Segment_bitmap = new SIM_Segment[total_segment_count];
         
         cout<<endl<<"Init Segment_bitmap ...ing"<<endl;
-        for(int i=0; i<total_segment_count; i++) {
-            Segment_bitmap[i].set_segment_info(i, i * BLOCK_COUNT_IN_SEGMENT, COLD_SEGMENT);
+        if (Dev_num == 1) {
+            for(int i=0; i<total_segment_count; i++) {
+                Segment_bitmap[i].set_segment_info(i, i * M2_BLOCK_COUNT_IN_SEGMENT, COLD_SEGMENT);
+            }    
+        } else if (Dev_num == 2) {
+            for(int i=0; i<total_segment_count; i++) {
+                Segment_bitmap[i].set_segment_info(i, i * U3_BLOCK_COUNT_IN_SEGMENT, COLD_SEGMENT);
+            }    
         }
         cout<<"Finish Init Segment_bitmap"<<endl;
         cout<< "#############################" <<endl;
@@ -92,8 +123,14 @@ void ZNS_Simulation::init_zone_bitmap() {
         Zone_bitmap = new SIM_Zone[Zone_count];
 
         cout<<endl<<"Init Zone_bitmap ...ing"<<endl;
-        for(int i=0; i<Zone_count; i++) {
-            Zone_bitmap[i].set_zone_info(i, i * SEGMENT_COUNT_IN_ZONE, i * SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT);
+        if (Dev_num == 1) {
+            for(int i=0; i<Zone_count; i++) {
+                Zone_bitmap[i].set_zone_info(i, i * M2_SEGMENT_COUNT_IN_ZONE, i * M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT);
+            }
+        } else if (Dev_num == 2) {
+            for(int i=0; i<Zone_count; i++) {
+                Zone_bitmap[i].set_zone_info(i, i * U3_SEGMENT_COUNT_IN_ZONE, i * U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT);
+            }
         }
         cout<<"Finish Init Zone_bitmap"<<endl;
         cout<< "#############################" <<endl;
@@ -181,7 +218,11 @@ int ZNS_Simulation::basic_zgc() {
         //cout << "through here 2" << endl;
         cout << i_zone << endl;
         i_zone_start_block = Zone_bitmap[i_zone].get_i_start_block();
-        i_zone_end_block = Zone_bitmap[i_zone].get_i_start_block() + SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT;
+        if (Dev_num == 1) {
+            i_zone_end_block = Zone_bitmap[i_zone].get_i_start_block() + M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT;
+        } else if (Dev_num == 2) {
+            i_zone_end_block = Zone_bitmap[i_zone].get_i_start_block() + U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT;
+        }
 
         if(Zone_bitmap[i_zone].get_valid_blocks(Zone_bitmap, Block_bitmap, i_zone) == 0) continue;
         
@@ -318,7 +359,11 @@ int ZNS_Simulation::lsm_zgc() {
         //cout << "through here 2" << endl;
 
         i_zone_start_block = Zone_bitmap[i_zone].get_i_start_block();
-        i_zone_end_block = Zone_bitmap[i_zone].get_i_start_block() + SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT;
+        if (Dev_num == 1) {
+            i_zone_end_block = Zone_bitmap[i_zone].get_i_start_block() + M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT;
+        } else if (Dev_num == 2) {
+            i_zone_end_block = Zone_bitmap[i_zone].get_i_start_block() + U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT;
+        }
 
         if(Zone_bitmap[i_zone].get_valid_blocks(Zone_bitmap, Block_bitmap, i_zone) == 0) continue;
         
@@ -451,8 +496,13 @@ void ZNS_Simulation::print_zone_info(int offset) {
 
 void ZNS_Simulation::print_segment_block_bitmap(int i_segment) {
     int start_i_block = Segment_bitmap[i_segment].get_i_start_block();
-    int end_i_block = start_i_block + BLOCK_COUNT_IN_SEGMENT;
+    int end_i_block;
     int list_cnt = 0; //int valid_cnt = 0;
+
+    if(Dev_num == 1) 
+        end_i_block = start_i_block + M2_BLOCK_COUNT_IN_SEGMENT;
+    else if (Dev_num == 2)
+        end_i_block = start_i_block + U3_BLOCK_COUNT_IN_SEGMENT;
 
     cout<< "Segment " << i_segment << " block_bitmap" <<endl;
     for(int i_block=start_i_block; i_block<end_i_block; i_block++) {
@@ -470,8 +520,13 @@ void ZNS_Simulation::print_segment_block_bitmap(int i_segment) {
 
 void ZNS_Simulation::print_zone_block_bitmap(int i_zone) {
     int start_i_block = Zone_bitmap[i_zone].get_i_start_block();
-    int end_i_block = start_i_block + BLOCK_COUNT_IN_SEGMENT * SEGMENT_COUNT_IN_ZONE;
+    int end_i_block;
     int list_cnt = 0;
+
+    if(Dev_num == 1) 
+        end_i_block = start_i_block + M2_BLOCK_COUNT_IN_SEGMENT * M2_SEGMENT_COUNT_IN_ZONE;
+    else if (Dev_num == 2)
+        end_i_block = start_i_block + U3_BLOCK_COUNT_IN_SEGMENT * U3_SEGMENT_COUNT_IN_ZONE;
 
     cout<< "Zone " << i_zone << " block_bitmap" <<endl;
     for(int i_block=start_i_block; i_block<end_i_block; i_block++) {
@@ -485,9 +540,14 @@ void ZNS_Simulation::print_zone_block_bitmap(int i_zone) {
 
 void ZNS_Simulation::print_zone_segment_bitmap(int i_zone) {
     int start_i_segment = Zone_bitmap[i_zone].get_i_start_segment();
-    int end_i_segment = start_i_segment + SEGMENT_COUNT_IN_ZONE;
+    int end_i_segment;
     int t_status;
     int list_cnt = 0;
+
+    if(Dev_num == 1) 
+        end_i_segment = start_i_segment + M2_SEGMENT_COUNT_IN_ZONE;
+    else if (Dev_num == 2)
+        end_i_segment = start_i_segment + U3_SEGMENT_COUNT_IN_ZONE;
 
     cout<< "Zone " << i_zone << " segment_bitmap" <<endl;
     for(int i_segment=start_i_segment; i_segment<end_i_segment; i_segment++) {

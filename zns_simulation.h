@@ -18,6 +18,7 @@
 
 //In Simulation, Set hardware zone spec
 #define M2_ZONE_MAX_COUNT 530
+#define U3_ZONE_MAX_COUNT 29172
 
 //In Simulation, Set default IO size : 4KB = 512 * 8
 #define SIM_BLOCK_IO_DEFAULT 8
@@ -26,9 +27,13 @@
 #define ZNS_BLOCK_SIZE 512 * 8
 #define ZNS_ZONE_BLOCK_COUNT 0x35e500
 
-//In Simulation, Set Zone spec
-#define BLOCK_COUNT_IN_SEGMENT 512
-#define SEGMENT_COUNT_IN_ZONE 512
+//In Simulation, Set M2 Zone spec
+#define M2_BLOCK_COUNT_IN_SEGMENT 512
+#define M2_SEGMENT_COUNT_IN_ZONE 512
+
+//In Simulation, Set U3 Zone spec
+#define U3_BLOCK_COUNT_IN_SEGMENT 512
+#define U3_SEGMENT_COUNT_IN_ZONE 36
 
 //Control zone, segment, block state
 #define VALID_BLOCK 1

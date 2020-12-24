@@ -11,7 +11,22 @@ Workload_Creator::Workload_Creator(m2_zns_share_info * zonelist, int zone_count,
     this->zone_util = zone_util;
     this->Zone_count = zone_count;
     this->Dev_num = dev_num;
-    cal_util_block = Zone_count * (int)ceil(SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
+
+    if (Dev_num == 1) 
+        cal_util_block = Zone_count * (int)ceil(M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
+    else if (Dev_num == 2)
+        cal_util_block = Zone_count * (int)ceil(U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
+}
+
+Workload_Creator::Workload_Creator(int zone_count, int dev_num, float zone_util) {
+    this->zone_util = zone_util;
+    this->Zone_count = zone_count;
+    this->Dev_num = dev_num;
+    
+    if (Dev_num == 1) 
+        cal_util_block = Zone_count * (int)ceil(M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
+    else if (Dev_num == 2)
+        cal_util_block = Zone_count * (int)ceil(U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
 }
 
 int *Workload_Creator::create_sequential_workload(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap) {
@@ -30,7 +45,10 @@ int *Workload_Creator::create_sequential_workload(SIM_Zone * Zone_bitmap, SIM_Se
 */
     for (int i_zone = 0; i_zone < Zone_count; i_zone++) {
         block_off = Zone_bitmap[i_zone].get_i_start_block();
-        n_zone_block = (int)ceil(SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
+        if (Dev_num == 1)
+            n_zone_block = (int)ceil(M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
+        else if (Dev_num == 2)
+            n_zone_block = (int)ceil(U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
         cond_off = block_off + n_zone_block;
         //cout << cond_off << endl;
         for(;block_off < cond_off; block_off++) {
@@ -58,7 +76,12 @@ int *Workload_Creator::create_random_workload(SIM_Zone * Zone_bitmap, SIM_Segmen
     int total_block_num = Zone_count * 512 * 512 - 1;
     int i_block = 0, n_zone_block, start_block;
     int block_off, cond_off = 0;
-    int zone_in_block = SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT;
+    int zone_in_block;
+
+    if (Dev_num == 1)
+        zone_in_block = M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT;
+    else if (Dev_num == 2)
+        zone_in_block = U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT;
 
 /*
     if (Update_count > total_block_num) {
@@ -70,7 +93,10 @@ int *Workload_Creator::create_random_workload(SIM_Zone * Zone_bitmap, SIM_Segmen
     for (int i_zone = 0; i_zone < Zone_count; i_zone++) {
         block_off = Zone_bitmap[i_zone].get_i_start_block();
         start_block = Zone_bitmap[i_zone].get_i_start_block();
-        n_zone_block = (int)ceil(SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
+         if (Dev_num == 1)
+            n_zone_block = (int)ceil(M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
+        else if (Dev_num == 2)
+            n_zone_block = (int)ceil(U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT * (zone_util * 0.01));
         cond_off = block_off + n_zone_block;
         //cout << cond_off << endl;
         for(;block_off < cond_off; block_off++) {
@@ -89,7 +115,7 @@ int *Workload_Creator::create_random_workload(SIM_Zone * Zone_bitmap, SIM_Segmen
 
 int Workload_Creator::update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap, int * _update_bitmap) {
     int start_block = 0;
-    int end_block = Zone_count * SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT;
+    int end_block;
     int update_cnt = 0;
     int io_result = 0;
     int sel_zone = Zone_count;
@@ -98,6 +124,11 @@ int Workload_Creator::update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment
     
     void * dummy_data = new char[ZNS_BLOCK_SIZE * 32];
     memset(dummy_data, 66, ZNS_BLOCK_SIZE * 32);
+
+    if (Dev_num == 1)
+        end_block = Zone_count * M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT;
+    else if (Dev_num == 2)
+        end_block = Zone_count * U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT;
 
 /*
     cout << "Print Zone Utilization Before Update" << endl;

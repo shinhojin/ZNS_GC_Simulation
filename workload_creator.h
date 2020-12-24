@@ -23,7 +23,10 @@ class Workload_Creator {
     int cal_util_block;
 
 public :
-    Workload_Creator(m2_zns_share_info * zonelist, int zone_count, int update_count, float zone_util);
+    // Constructor for M2 ZNS SSD
+    Workload_Creator(m2_zns_share_info * zonelist, int zone_count, int dev_num, float zone_util);
+    // Constructor for U3 ZNS SSD
+    Workload_Creator(int zone_count, int dev_num, float zone_util);
 
     // create workload function
     int *create_sequential_workload(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap);
