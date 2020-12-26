@@ -47,11 +47,11 @@ ZNS_Simulation::ZNS_Simulation(char * path, int zone_count, float zone_util, int
 
     //init ZNS SSD
     if(dev_num == 1) {
-    //m2_init_all_zones_reset();
-    //m2_init_zones_write(Zone_count);
+        //m2_init_all_zones_reset();
+        //m2_init_zones_write(Zone_count);
     } else if (dev_num == 2) {
-    //u3_init_all_zones_reset();
-    //u3_init_zones_write(Zone_count);
+        //u3_init_all_zones_reset();
+        //u3_init_zones_write(Zone_count);
     }
         
     current_i_block_bitmap = 0;
@@ -142,8 +142,6 @@ void ZNS_Simulation::init_zone_bitmap() {
 
         cout<<endl<<"Zone Info First & Last"<<endl;
         cout<< "#############################" <<endl;
-        cout<< "Total number of Zones : ";
-        cout << zns_info_list->totalzones << endl;
         cout<< "[First Zone Info]" << endl;
         print_zone_info(0);
         cout<< "[Last Zone Info]" << endl;
@@ -192,7 +190,7 @@ int ZNS_Simulation::m2_read_valid_data_lsm(int i_block_offset) {
 
 int ZNS_Simulation::m2_basic_zgc() {
     cout<< "Start Basic ZGC" <<endl;
-    int sel_zone = Zone_count;
+    int sel_zone = Zone_count + update_zone_count;
     int max_zone_num = 530;
     int i_zone, i_segment, i_block;
 
@@ -222,7 +220,7 @@ int ZNS_Simulation::m2_basic_zgc() {
         i_zone_start_block = Zone_bitmap[i_zone].get_i_start_block();
         i_zone_end_block = Zone_bitmap[i_zone].get_i_start_block() + M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT;
 
-        if(Zone_bitmap[i_zone].get_valid_blocks(Zone_bitmap, Block_bitmap, i_zone) == 0) continue;
+        if(Zone_bitmap[i_zone].m2_get_valid_blocks(Zone_bitmap, Block_bitmap, i_zone) == 0) continue;
         
         for(i_bitmap_current = i_zone_start_block; i_bitmap_current <= i_zone_end_block; ) {
             if (Block_bitmap[i_bitmap_current].get_state() == INVALID_BLOCK) {
@@ -263,6 +261,7 @@ int ZNS_Simulation::m2_basic_zgc() {
                         i_current_write_buffer = 0;
                     } else {
                         cout << "write IO result : " << io_result << endl;
+                        exit(0);
                     }
                 } else {
                     remain_read_offset = i_current_write_buffer + read_valid_count - 32;
@@ -273,6 +272,7 @@ int ZNS_Simulation::m2_basic_zgc() {
                         i_current_write_buffer = 0;
                     } else {
                         cout << "write IO result : " << io_result << endl;
+                        exit(0);
                     }
 
                     memcpy(&buffer_128KB_write[i_current_write_buffer], &buffer_128KB_read[read_valid_count-remain_read_offset],
@@ -313,7 +313,7 @@ Basic_GC_end:
 
 int ZNS_Simulation::m2_lsm_zgc() {
     cout<< "Start LSM ZGC" <<endl;
-    int sel_zone = Zone_count;
+    int sel_zone = Zone_count + update_zone_count;
     int max_zone_num = 530;
     int i_zone, i_segment, i_block;
 
@@ -344,7 +344,7 @@ int ZNS_Simulation::m2_lsm_zgc() {
         i_zone_start_block = Zone_bitmap[i_zone].get_i_start_block();
         i_zone_end_block = Zone_bitmap[i_zone].get_i_start_block() + M2_SEGMENT_COUNT_IN_ZONE * M2_BLOCK_COUNT_IN_SEGMENT;
 
-        if(Zone_bitmap[i_zone].get_valid_blocks(Zone_bitmap, Block_bitmap, i_zone) == 0) continue;
+        if(Zone_bitmap[i_zone].m2_get_valid_blocks(Zone_bitmap, Block_bitmap, i_zone) == 0) continue;
 
         for(i_bitmap_current = i_zone_start_block; i_bitmap_current <= i_zone_end_block; i_bitmap_current += 32) {
             io_result = m2_zns_read(zns_info_list, buffer_128KB_read, 512 * 8 * 32, 
@@ -449,7 +449,7 @@ int ZNS_Simulation::u3_read_valid_data_lsm(int i_block_offset) {
 
 int ZNS_Simulation::u3_basic_zgc() {
     cout<< "Start Basic ZGC" <<endl;
-    int sel_zone = Zone_count;
+    int sel_zone = Zone_count + update_zone_count;
     int max_zone_num = 29172;
     int i_zone, i_segment, i_block;
 
@@ -477,11 +477,11 @@ int ZNS_Simulation::u3_basic_zgc() {
 
     for(i_zone = 0; i_zone < Zone_count; i_zone++) {
         //cout << "through here 2" << endl;
-        cout << i_zone << endl;
+        //cout << i_zone << endl;
         i_zone_start_block = Zone_bitmap[i_zone].get_i_start_block();
         i_zone_end_block = Zone_bitmap[i_zone].get_i_start_block() + U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT;
         
-        if(Zone_bitmap[i_zone].get_valid_blocks(Zone_bitmap, Block_bitmap, i_zone) == 0) continue;
+        if(Zone_bitmap[i_zone].u3_get_valid_blocks(Zone_bitmap, Block_bitmap, i_zone) == 0) continue;
         
         //cout << "through here 3" << endl;
 
@@ -521,7 +521,7 @@ int ZNS_Simulation::u3_basic_zgc() {
                 i_current_write_buffer += read_valid_count;
             } else {
                 if((i_current_write_buffer + read_valid_count) == 48) { //192KB write
-                    //cout << "through here 5" << endl;
+                    cout << "through here 5" << endl;
                     //cout << sel_zone << " " << offset_write_zone << endl;
                     memcpy(&buffer_192KB_write[i_current_write_buffer], buffer_192KB_read, 512 * 8 * read_valid_count);
                     io_result = u3_zns_write(buffer_192KB_write, _192KB, sel_zone);
@@ -530,16 +530,19 @@ int ZNS_Simulation::u3_basic_zgc() {
                         i_current_write_buffer = 0;
                     } else {
                         cout << "write IO result : " << io_result << endl;
+                        exit(0);
                     }
                 } else {
                     remain_read_offset = i_current_write_buffer + read_valid_count - 48;
                     memcpy(&buffer_192KB_write[i_current_write_buffer], buffer_192KB_read, 512 * 8 * (read_valid_count-remain_read_offset));
+                    //cout << "through here 6" << endl;
                     io_result = u3_zns_write(buffer_192KB_write, _192KB, sel_zone);
                     if(io_result == 0) {
                         offset_write_zone += 48;
                         i_current_write_buffer = 0;
                     } else {
                         cout << "write IO result : " << io_result << endl;
+                        exit(0);
                     }
                     memcpy(&buffer_192KB_write[i_current_write_buffer], &buffer_192KB_read[read_valid_count-remain_read_offset],
                         512 * 8 * remain_read_offset);
@@ -580,7 +583,7 @@ Basic_GC_end:
 
 int ZNS_Simulation::u3_lsm_zgc() {
     cout<< "Start LSM ZGC" <<endl;
-    int sel_zone = Zone_count;
+    int sel_zone = Zone_count + update_zone_count;
     int max_zone_num = 29172;
     int i_zone, i_segment, i_block;
 
@@ -614,7 +617,7 @@ int ZNS_Simulation::u3_lsm_zgc() {
         i_zone_start_block = Zone_bitmap[i_zone].get_i_start_block();
         i_zone_end_block = Zone_bitmap[i_zone].get_i_start_block() + U3_SEGMENT_COUNT_IN_ZONE * U3_BLOCK_COUNT_IN_SEGMENT;
         
-        if(Zone_bitmap[i_zone].get_valid_blocks(Zone_bitmap, Block_bitmap, i_zone) == 0) continue;
+        if(Zone_bitmap[i_zone].u3_get_valid_blocks(Zone_bitmap, Block_bitmap, i_zone) == 0) continue;
         
         //cout << "through here 3" << endl;
 
@@ -873,13 +876,14 @@ int * ZNS_Simulation::request_random_workload() {
 }
 
 void ZNS_Simulation::request_update_workload() {
-    int update_write_count;
+    pair<int,int> update_count;
     if (Dev_num == 1)
-        update_write_count = workload_creator->m2_update_block_in_memory(Zone_bitmap, Segment_bitmap, Block_bitmap, update_bitmap);
+        update_count = workload_creator->m2_update_block_in_memory(Zone_bitmap, Segment_bitmap, Block_bitmap, update_bitmap);
     else if (Dev_num == 2)
-        update_write_count = workload_creator->u3_update_block_in_memory(Zone_bitmap, Segment_bitmap, Block_bitmap, update_bitmap);
+        update_count = workload_creator->u3_update_block_in_memory(Zone_bitmap, Segment_bitmap, Block_bitmap, update_bitmap);
 
-    this->update_write_offset = update_write_count;
+    this->update_write_offset = update_count.first;
+    this->update_zone_count = update_count.second;
 }
 
 //************* End Workload Creator function **************//

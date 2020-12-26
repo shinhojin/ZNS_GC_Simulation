@@ -65,6 +65,7 @@ class ZNS_Simulation {
     struct Workload_Creator * workload_creator;
     int * update_bitmap;
     int update_write_offset;
+    int update_zone_count;
 
     //Simualtion bitmap
     SIM_Zone * Zone_bitmap;

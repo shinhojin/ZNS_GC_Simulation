@@ -63,7 +63,8 @@ public :
     int get_i_start_block();
     float get_utilization();
     void set_utilization(float valid_cnt);
-    int get_valid_blocks(SIM_Zone * Zone_ctl, SIM_Block * Block_ctl, int i_zone);
+    int m2_get_valid_blocks(SIM_Zone * Zone_ctl, SIM_Block * Block_ctl, int i_zone);
+    int u3_get_valid_blocks(SIM_Zone * Zone_ctl, SIM_Block * Block_ctl, int i_zone);
     void reset_valid_blocks();
 };
 
