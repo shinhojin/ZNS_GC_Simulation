@@ -7,7 +7,7 @@ This section describes how to run ZNS_GC_Simulation on Linux locally.
 
 Note: This tool 
 
-1. Set Up ZNS_GC_Simulation
+###1. Set Up ZNS_GC_Simulation
 ---------------------------
 
 Clone the ZNS_GC_Simulation git repository and compile:
@@ -20,7 +20,7 @@ Clone the ZNS_GC_Simulation git repository and compile:
 
     make
 
-2. Run ZNS_GC_Simulation
+###2. Run ZNS_GC_Simulation
 -------------------------
 
 Now you are ready to run ZNS_GC_Simulation! Let's learn how to use first.
