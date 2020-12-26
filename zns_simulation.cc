@@ -9,47 +9,52 @@
 #include <cmath>
 
 ZNS_Simulation::ZNS_Simulation(char * path, int zone_count, float zone_util, int dev_num) {
-        if (dev_num == 1) {// M2 ZNS SSD Init
-            zns_info_list = (struct m2_zns_share_info *) malloc(sizeof(struct m2_zns_share_info));
-            m2_zns_init(path, zns_info_list);
-        } else if (dev_num == 2) {// U3 ZNS SSD Init
-            u3_zns_get_info(path);
-            u3_zns_get_zone_desc(REPORT_ALL, REPORT_ALL_STATE, 0, 0, true);
-        } else {// Dev_num error return
-            cout << "This not a SSD number, please input correct SSD number!" << endl;
-            cout << "Error for {DEV_NUM}" << endl;
-            exit(0);
-        }
+    if (dev_num == 1) {// M2 ZNS SSD Init
+        zns_info_list = (struct m2_zns_share_info *) malloc(sizeof(struct m2_zns_share_info));
+        m2_zns_init(path, zns_info_list);
+    } else if (dev_num == 2) {// U3 ZNS SSD Init
+        u3_zns_get_info(path);
+        u3_zns_get_zone_desc(REPORT_ALL, REPORT_ALL_STATE, 0, 0, true);
+    } else {// Dev_num error return
+        cout << "This not a SSD number, please input correct SSD number!" << endl;
+        cout << "Error for {DEV_NUM}" << endl;
+        exit(0);
+    }
 
-        //Workload Argument
-        if (dev_num == 1) {// M2 ZNS SSD
-            workload_creator = new Workload_Creator(zns_info_list, zone_count, dev_num, zone_util);
-        } else if (dev_num == 2) {// U3 ZNS SSD
-            workload_creator = new Workload_Creator(zone_count, dev_num, zone_util);
-        }
+    //Workload Argument
+    if (dev_num == 1) {// M2 ZNS SSD
+        workload_creator = new Workload_Creator(zns_info_list, zone_count, dev_num, zone_util);
+    } else if (dev_num == 2) {// U3 ZNS SSD
+        workload_creator = new Workload_Creator(zone_count, dev_num, zone_util);
+    }
         
-        //init Argument
-        Zone_count = zone_count;
-        Zone_util = zone_util;
-        Dev_num = dev_num;
-        if (dev_num == 1) {// M2 ZNS SSD Spec
-            Segment_count = M2_SEGMENT_COUNT_IN_ZONE;
-            Block_count = M2_BLOCK_COUNT_IN_SEGMENT;
-        } else if (dev_num == 2) {// U3 ZNS SSD Spec
-            Segment_count = U3_SEGMENT_COUNT_IN_ZONE;
-            Block_count = U3_BLOCK_COUNT_IN_SEGMENT;
-        }
-        total_segment_count = Zone_count * Segment_count;
-        total_block_count = total_segment_count * Block_count;
+    //init Argument
+    Zone_count = zone_count;
+    Zone_util = zone_util;
+    Dev_num = dev_num;
+    if (dev_num == 1) {// M2 ZNS SSD Spec
+        Segment_count = M2_SEGMENT_COUNT_IN_ZONE;
+        Block_count = M2_BLOCK_COUNT_IN_SEGMENT;
+    } else if (dev_num == 2) {// U3 ZNS SSD Spec
+        Segment_count = U3_SEGMENT_COUNT_IN_ZONE;
+        Block_count = U3_BLOCK_COUNT_IN_SEGMENT;
+    }
+    total_segment_count = Zone_count * Segment_count;
+    total_block_count = total_segment_count * Block_count;
         
-        //init bitmap
-        init_zone_bitmap();
+    //init bitmap
+    init_zone_bitmap();
 
-        //init ZNS SSD
-        init_all_zones_reset();
-        //init_zones_write(Zone_count);
+    //init ZNS SSD
+    if(dev_num == 1) {
+    //m2_init_all_zones_reset();
+    //m2_init_zones_write(Zone_count);
+    } else if (dev_num == 2) {
+    //u3_init_all_zones_reset();
+    //u3_init_zones_write(Zone_count);
+    }
         
-        current_i_block_bitmap = 0;
+    current_i_block_bitmap = 0;
 }
 
 //***************** init function *****************//
@@ -150,9 +155,9 @@ void ZNS_Simulation::init_zone_bitmap() {
 
 //***************** End init function *****************//
 
-//***************** Common function *****************//
+//***************** M2 ZNS SSD GC function *****************//
 
-int ZNS_Simulation::read_valid_data(int i_block_offset) { 
+int ZNS_Simulation::m2_read_valid_data(int i_block_offset) { 
     int index = i_block_offset;
     int read_count = 0;
 
@@ -171,7 +176,7 @@ int ZNS_Simulation::read_valid_data(int i_block_offset) {
     return read_count;
 }
 
-int ZNS_Simulation::read_valid_data_lsm(int i_block_offset) { 
+int ZNS_Simulation::m2_read_valid_data_lsm(int i_block_offset) { 
     int read_count = 0;
 
     for(int i = i_block_offset; i < i_block_offset+32; i++) {
@@ -184,10 +189,6 @@ int ZNS_Simulation::read_valid_data_lsm(int i_block_offset) {
 
     return read_count;
 }
-
-//***************** End function *****************//
-
-//***************** M2 ZNS SSD GC function *****************//
 
 int ZNS_Simulation::m2_basic_zgc() {
     cout<< "Start Basic ZGC" <<endl;
@@ -230,7 +231,7 @@ int ZNS_Simulation::m2_basic_zgc() {
                 continue;
             }
         
-            read_valid_count = read_valid_data(i_bitmap_current);
+            read_valid_count = m2_read_valid_data(i_bitmap_current);
             
             if (read_valid_count == 0) {
                 i_bitmap_current++;
@@ -358,7 +359,7 @@ int ZNS_Simulation::m2_lsm_zgc() {
                     collection_invalid_count++;
                     i++;
                 } else {
-                    read_count = read_valid_data_lsm(i_bitmap_current);
+                    read_count = m2_read_valid_data_lsm(i_bitmap_current);
                     memcpy(&buffer_128KB_write[i_current_write_buffer], &buffer_128KB_read[i_current_read_offset], 512 * 8 * read_count);
                     i += read_count;
                     i_current_read_offset += read_count;
@@ -414,6 +415,38 @@ LSM_ZGC_end:
 
 //***************** U3 ZNS SSD GC function *****************//
 
+int ZNS_Simulation::u3_read_valid_data(int i_block_offset) { 
+    int index = i_block_offset;
+    int read_count = 0;
+
+    while(1) {
+        if (Block_bitmap[index].get_state() == VALID_BLOCK) {
+            read_count++;
+            index++;
+        } else break;
+ 
+        if (read_count == 48) break; // Max IO size 192KB (4KB * 48)
+    } 
+
+    //cout<< "read data in func" <<endl;
+
+    return read_count;
+}
+
+int ZNS_Simulation::u3_read_valid_data_lsm(int i_block_offset) { 
+    int read_count = 0;
+
+    for(int i = i_block_offset; i < i_block_offset+48; i++) {
+        if (Block_bitmap[i].get_state() == VALID_BLOCK) {
+            read_count++;
+        } else break;
+    } 
+
+    //cout<< "read data in func" <<endl;
+
+    return read_count;
+}
+
 int ZNS_Simulation::u3_basic_zgc() {
     cout<< "Start Basic ZGC" <<endl;
     int sel_zone = Zone_count;
@@ -461,7 +494,7 @@ int ZNS_Simulation::u3_basic_zgc() {
                 continue;
             }
         
-            read_valid_count = read_valid_data(i_bitmap_current);
+            read_valid_count = u3_read_valid_data(i_bitmap_current);
             //cout << read_valid_count << endl;
             
             if (read_valid_count == 0) {
@@ -597,7 +630,7 @@ int ZNS_Simulation::u3_lsm_zgc() {
                     collection_invalid_count++;
                     i++;
                 } else {
-                    read_count = read_valid_data_lsm(i_bitmap_current);
+                    read_count = u3_read_valid_data_lsm(i_bitmap_current);
                     memcpy(&buffer_192KB_write[i_current_write_buffer], &buffer_192KB_read[i_current_read_offset], 512 * 8 * read_count);
                     i += read_count;
                     i_current_read_offset += read_count;
@@ -651,12 +684,9 @@ LSM_ZGC_end:
 
 //***************** End U3 ZNS SSD GC function *****************//
 
-int ZNS_Simulation::print_zns_totalzones() {
-    cout << zns_info_list->totalzones << endl;
-    return zns_info_list->totalzones;
-}
+//***************** ZNS SSD Zone write/reset function *****************//
 
-int ZNS_Simulation::init_zones_write(int numofzones) {
+int ZNS_Simulation::m2_init_zones_write(int numofzones) {
     int i_zone, i_segment, i_block, i_bitmap;
     int offset;
     int write_result;
@@ -678,7 +708,7 @@ int ZNS_Simulation::init_zones_write(int numofzones) {
     return 0;
 }
 
-void ZNS_Simulation::init_zone_reset(int numofzones) {
+void ZNS_Simulation::m2_init_zone_reset(int numofzones) {
     int i_zone;
 
     cout<< "Zone Init Reset" <<endl;
@@ -687,14 +717,56 @@ void ZNS_Simulation::init_zone_reset(int numofzones) {
     }
 }
 
-void ZNS_Simulation::init_all_zones_reset() {
+void ZNS_Simulation::m2_init_all_zones_reset() {
     int i_zone = 0;
     cout << "Reset ZNS SSD ...ing" << endl;
-    for (i_zone = 0; i_zone < zns_info_list->totalzones; i_zone++) {
+    for (i_zone = 0; i_zone < M2_ZONE_MAX_COUNT; i_zone++) {
         m2_zns_zone_reset(zns_info_list, i_zone);
     }
     cout << "Finish Reset ZNS SSD" << endl;
 }
+
+int ZNS_Simulation::u3_init_zones_write(int numofzones) {
+    int i_zone, i_segment, i_block, i_bitmap;
+    int write_num;
+    int write_result;
+
+    void * dummy_data = new char[ZNS_BLOCK_SIZE * 48];
+    memset(dummy_data, 66, ZNS_BLOCK_SIZE * 48);
+
+    cout << endl << "Init ZNS SSD Write ...ing" << endl;
+    for(i_zone=0; i_zone<numofzones; i_zone++) {
+        for (write_num = 0; write_num < 384; write_num++) {
+            write_result = u3_zns_write(dummy_data, _192KB, i_zone);
+        }
+        u3_zns_set_zone(i_zone, MAN_FINISH);
+    }
+
+    cout << "Finish Init ZNS SSD Write" << endl;
+
+    free(dummy_data);
+    return 0;
+}
+
+void ZNS_Simulation::u3_init_zone_reset(int numofzones) {
+    int i_zone;
+
+    cout<< "Zone Init Reset" <<endl;
+    for(i_zone=0; i_zone<numofzones; i_zone++) {
+        u3_zns_set_zone(i_zone, MAN_RESET);
+    }
+}
+
+void ZNS_Simulation::u3_init_all_zones_reset() {
+    int i_zone = 0;
+    cout << "Reset ZNS SSD ...ing" << endl;
+    for (i_zone = 0; i_zone < U3_ZONE_MAX_COUNT; i_zone++) {
+        u3_zns_set_zone(i_zone, MAN_RESET);
+    }
+    cout << "Finish Reset ZNS SSD" << endl;
+}
+
+//***************** End ZNS SSD Zone write/reset function *****************//
 
 //***************** print function *****************//
 

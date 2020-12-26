@@ -17,8 +17,8 @@ int main(int argc, char * argv[]) {
 
     if(argc != ARGUMENT_COUNT) {
         cout<< "Please, set argument" <<endl;
-        cout<< "---> sudo ./Simulation {DEV_NAME} {DEV_NUM(1. M2, 2. U3)} {ZONE_COUNT(MAX_512)} {SETTING_ZONE_UTILIZATION(%)} {GC_NUMBER(1.BASIC_GC, 2.LSM_ZGC)} {WORKLOAD_TYPE(1.SEQ, 2.RAND, 3.ZIPFIAN)} " <<endl;
-        cout<< "---> example : sudo ./Simulation /dev/nvme0n1 2 512 60.0 1 2" <<endl;
+        cout<< "---> sudo ./Simulation {DEV_NAME} {DEV_NUM(1. M2, 2. U3)} {ZONE_COUNT(MAX_512)} {SETTING_ZONE_UTILIZATION(%)} {GC_NUMBER(BASIC_ZGC/LSM_ZGC)} {WORKLOAD_TYPE(SEQ/RAND)} " <<endl;
+        cout<< "---> example : sudo ./Simulation /dev/nvme0n1 2 512 60.0 BASIC_GC RAND" <<endl;
         exit(0);
     }
     
@@ -41,15 +41,12 @@ int main(int argc, char * argv[]) {
     //2. Create Workload
     cout<< "2. Start Create Workload" <<endl;
     cout<< "------------------------------------------------------" <<endl;
-        if (atoi(argv[WORKLOAD_NUM]) == 1) {
+        if (argv[WORKLOAD_NUM] == "SEQ") {
             cout << "Do Sequential" << endl;
             //zns_simulation->request_sequential_workload();
-        } else if (atoi(argv[WORKLOAD_NUM]) == 2) {
+        } else if (argv[WORKLOAD_NUM] == "RAND") {
             cout << "Do Random" << endl;
             //zns_simulation->request_random_workload();
-        } else if (atoi(argv[WORKLOAD_NUM]) == 3) {
-            cout << "Do Zipfian" << endl;
-            //zns_simulation->request_zipfian_workload();
         }
         //workload_creator.get_workload_job(argv[SETTING_WORKLOAD_FILE]);
         //workload_creator.print_all_workload();
@@ -66,12 +63,22 @@ int main(int argc, char * argv[]) {
     //4. Start GC Simulation in ZNS SSD
     cout<< "4. Start GC Simulation in ZNS SSD" <<endl;
     cout<< "------------------------------------------------------" <<endl;
-        if (atoi(argv[GC_NUMBER]) == 1) {
-            cout << "Do Basic_zgc" << endl;
-            //zns_simulation->basic_zgc();
-        } else if (atoi(argv[GC_NUMBER]) == 2) {
-            cout << "Do lsm_zgc" << endl;
-            //zns_simulation->lsm_zgc();
+        if (argv[GC_NUMBER] == "BASIC_ZGC") {
+            if(atoi(argv[DEV_NAME]) == 1) {
+                cout << "Do BASIC_ZGC" << endl;
+                //zns_simulation->m2_basic_zgc();
+            } else if (atoi(argv[DEV_NAME]) == 2 ) {
+                cout << "Do BASIC_ZGC" << endl;
+                //zns_simulation->u3_basic_zgc();
+            }
+        } else if (argv[GC_NUMBER] ==  "LSM_ZGC") {
+            if(atoi(argv[DEV_NAME]) == 1) {
+                cout << "Do LSM_ZGC" << endl;
+                //zns_simulation->m2_lsm_zgc();
+            } else if (atoi(argv[DEV_NAME]) == 2 ) {
+                cout << "Do LSM_ZGC" << endl;
+                //zns_simulation->u3_lsm_zgc();
+            }
         }
     cout<< "------------------------------------------------------" <<endl<<endl;
 
