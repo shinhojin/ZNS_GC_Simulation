@@ -66,18 +66,14 @@ int main(int argc, char * argv[]) {
     cout<< "------------------------------------------------------" <<endl;
         if (strcmp(argv[GC_NUMBER],"BASIC_ZGC") == 0) {
             if(atoi(argv[DEV_NUM]) == 1) {
-                cout << "Do BASIC_ZGC" << endl;
                 zns_simulation->m2_basic_zgc();
             } else if (atoi(argv[DEV_NUM]) == 2 ) {
-                cout << "Do BASIC_ZGC" << endl;
                 zns_simulation->u3_basic_zgc();
             }
         } else if (strcmp(argv[GC_NUMBER],"LSM_ZGC") == 0) {
             if(atoi(argv[DEV_NUM]) == 1) {
-                cout << "Do LSM_ZGC" << endl;
                 zns_simulation->m2_lsm_zgc();
             } else if (atoi(argv[DEV_NUM]) == 2 ) {
-                cout << "Do LSM_ZGC" << endl;
                 zns_simulation->u3_lsm_zgc();
             }
         }

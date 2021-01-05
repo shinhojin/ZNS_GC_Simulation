@@ -134,6 +134,7 @@ pair<int,int>Workload_Creator::m2_update_block_in_memory(SIM_Zone * Zone_bitmap,
         if (write_offset == (512 * 512)) {
             m2_zns_zone_finish(zns_info_list, sel_zone);
             sel_zone++;
+            zone_update_count++;
             write_offset = 0;
             cout << "Up to Max size of Zone, Move to next Zone!!" << endl;
             cout << "write zone : " << sel_zone << endl;
@@ -197,6 +198,7 @@ pair<int, int>Workload_Creator::u3_update_block_in_memory(SIM_Zone * Zone_bitmap
         if (write_offset == (512 * 36)) {
             u3_zns_set_zone(sel_zone, MAN_FINISH);
             sel_zone++;
+            zone_update_count++;
             write_offset = 0;
             cout << "Up to Max size of Zone, Move to next Zone!!" << endl;
             cout << "write zone : " << sel_zone << endl;
