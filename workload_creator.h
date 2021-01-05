@@ -1,10 +1,16 @@
+/* 2020. 12. 15 - Date of initial creation
+ * Creater : Hojin Shin
+ * Modifier : -
+ * This file is the ZNS SSD Simulation Workload Creator Header
+*/
+
 #ifndef workload_creator_H
 #define workload_creator_H
 
 #include "zns_simulation.h"
 #include <iostream>
 
-//Control zone, segment, block state
+// Control zone, segment, block state
 #define VALID_BLOCK 1
 #define INVALID_BLOCK 2
 #define FREE_BLOCK 0
@@ -12,7 +18,7 @@
 using namespace std;
 
 class Workload_Creator {
-    //ZNS SSD variable
+    // ZNS SSD variable
     struct m2_zns_share_info * zns_info_list;
 
     int Dev_num;
@@ -28,11 +34,11 @@ public :
     // Constructor for U3 ZNS SSD
     Workload_Creator(int zone_count, int dev_num, float zone_util);
 
-    // create workload function
+    // Create workload function
     int *create_sequential_workload(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap);
     int *create_random_workload(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap);
 
-    // update block function
+    // Update block function
     pair<int,int>m2_update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap, int * _update_bitmap);
     pair<int,int>u3_update_block_in_memory(SIM_Zone * Zone_bitmap, SIM_Segment * Segment_bitmap, SIM_Block * Block_bitmap, int * _update_bitmap);
 };

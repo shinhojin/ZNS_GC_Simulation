@@ -1,7 +1,7 @@
-/* 2020. 09. 22
+/* 2020. 09. 22 - Date of initial creation
  * Creater : Gunhee Choi
- * Modifier : -
- * This file defines the Simulation of Data Structure
+ * Modifier : Hojin Shin
+ * This file defines the Simulation of Data Structure Header
 */
 
 #ifndef ZNS_Simulation_datastructure_H

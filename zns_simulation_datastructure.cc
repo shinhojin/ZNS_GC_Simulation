@@ -1,4 +1,4 @@
-/* 2020. 09. 22
+/* 2020. 09. 22 - Date of initial creation
  * Creater : Gunhee Choi
  * Modifier : Hojin Shin
  * This file implements the Simulation of Data Structure
@@ -30,6 +30,7 @@ void SIM_Zone::set_utilization(float valid_cnt) {
     float zone_util;
     //zone_util = (valid_cnt / (float)(SEGMENT_COUNT_IN_ZONE * BLOCK_COUNT_IN_SEGMENT)) * 100;
     this->utilization = zone_util;
+    /* TODO */
 }
 
 int SIM_Zone::m2_get_valid_blocks(SIM_Zone * Zone_ctl, SIM_Block * Block_ctl, int i_zone) {

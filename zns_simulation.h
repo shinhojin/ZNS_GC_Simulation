@@ -1,7 +1,7 @@
-/* 2020. 09. 22
+/* 2020. 09. 22 - Date of initial creation
  * Creater : Gunhee Choi
  * Modifier : Hojin Shin
- * This file defines the Simulation Class
+ * This file defines the Simulation Class Header
 */
 
 #ifndef ZNS_simulation_H
@@ -78,7 +78,7 @@ class ZNS_Simulation {
 
 public :
     ZNS_Simulation(char * path, int zone_count, float dev_util, int update_count);
-    //init function
+    //Init function
     void init_block_bitmap();
     void init_segment_bitmap();
     void init_zone_bitmap();
@@ -95,17 +95,17 @@ public :
     int u3_read_valid_data(int i_block);
     int u3_read_valid_data_lsm(int i_block);
 
-    // M2 ZNS SSD function
+    //M2 ZNS SSD function
     int m2_init_zones_write(int numofzones);
     void m2_init_zone_reset(int numofzones);
     void m2_init_all_zones_reset();
 
-    // M2 ZNS SSD function
+    //M2 ZNS SSD function
     int u3_init_zones_write(int numofzones);
     void u3_init_zone_reset(int numofzones);
     void u3_init_all_zones_reset();
 
-    //print function
+    //Print function
     void print_block_info(int offset);
     void print_segment_info(int offset);
     void print_zone_info(int offset);
@@ -113,7 +113,7 @@ public :
     void print_zone_block_bitmap(int i_zone);
     void print_zone_segment_bitmap(int i_zone);
 
-    //request workload function
+    //Request workload function
     int *request_sequential_workload();
     int *request_random_workload();
     void request_update_workload();

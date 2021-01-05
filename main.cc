@@ -1,3 +1,9 @@
+/* 2020. 09. 22 - Date of initial creation
+ * Creater : Gunhee Choi
+ * Modifier : Hojin Shin 
+ * This file is the ZNS_GC_Simulation main
+*/
+
 #include "zns_simulation.h"
 #include <string>
 
@@ -34,8 +40,6 @@ int main(int argc, char * argv[]) {
     cout<< "1. Start Init ZNS SSD Simulation" <<endl;
     cout<< "------------------------------------------------------" <<endl;
         zns_simulation = new ZNS_Simulation(argv[DEV_NAME], atoi(argv[ZONE_COUNT]), atoi(argv[SETTING_DEV_UTILIZATION]), atoi(argv[DEV_NUM]));
-        //zns_simulation->print_segment_block_bitmap(0);
-        
     cout<< "------------------------------------------------------" <<endl<<endl;
     
     //2. Create Workload
@@ -48,8 +52,6 @@ int main(int argc, char * argv[]) {
             cout << "Do Random" << endl;
             zns_simulation->request_random_workload();
         }
-        //workload_creator.get_workload_job(argv[SETTING_WORKLOAD_FILE]);
-        //workload_creator.print_all_workload();
     cout<< "------------------------------------------------------" <<endl<<endl;
 
     //3. Start Workload Simualtion in memory.
@@ -57,16 +59,15 @@ int main(int argc, char * argv[]) {
     cout<< "------------------------------------------------------" <<endl;
         cout << "Do Update" << endl;
         zns_simulation->request_update_workload();
-        //zns_simulation->print_segment_block_bitmap(0);
     cout<< "------------------------------------------------------" <<endl<<endl;
 
-    //4. Start GC Simulation in ZNS SSD
+    //4. Start ZGC Simulation in ZNS SSD
     cout<< "4. Start GC Simulation in ZNS SSD" <<endl;
     cout<< "------------------------------------------------------" <<endl;
         if (strcmp(argv[GC_NUMBER],"BASIC_ZGC") == 0) {
             if(atoi(argv[DEV_NUM]) == 1) {
                 cout << "Do BASIC_ZGC" << endl;
-                //zns_simulation->m2_basic_zgc();
+                zns_simulation->m2_basic_zgc();
             } else if (atoi(argv[DEV_NUM]) == 2 ) {
                 cout << "Do BASIC_ZGC" << endl;
                 zns_simulation->u3_basic_zgc();
@@ -74,10 +75,10 @@ int main(int argc, char * argv[]) {
         } else if (strcmp(argv[GC_NUMBER],"LSM_ZGC") == 0) {
             if(atoi(argv[DEV_NUM]) == 1) {
                 cout << "Do LSM_ZGC" << endl;
-                //zns_simulation->m2_lsm_zgc();
+                zns_simulation->m2_lsm_zgc();
             } else if (atoi(argv[DEV_NUM]) == 2 ) {
                 cout << "Do LSM_ZGC" << endl;
-                //zns_simulation->u3_lsm_zgc();
+                zns_simulation->u3_lsm_zgc();
             }
         }
     cout<< "------------------------------------------------------" <<endl<<endl;

@@ -1,3 +1,9 @@
+/* 2020. 12. 15 - Date of initial creation
+ * Creater : Hojin Shin
+ * Modifier : -
+ * This file is the ZNS SSD Simulation Workload Creator
+*/
+
 #include "workload_creator.h"
 
 #include <string.h>
@@ -44,7 +50,6 @@ int *Workload_Creator::create_sequential_workload(SIM_Zone * Zone_bitmap, SIM_Se
         block_off = Zone_bitmap[i_zone].get_i_start_block();
         
         cond_off = block_off + n_zone_block;
-        //cout << cond_off << endl;
         for(;block_off < cond_off; block_off++) {
             update_block[i_block] = block_off;
             i_block++;
@@ -174,7 +179,6 @@ pair<int, int>Workload_Creator::u3_update_block_in_memory(SIM_Zone * Zone_bitmap
     for (int i_block = start_block; i_block < end_block; i_block++) {
         for (int j_block = 0; j_block < cal_util_block; j_block++) {
             if (i_block == _update_bitmap[j_block]) {
-                //cout << i_block << endl;
                 Block_bitmap[i_block].set_state(INVALID_BLOCK);
                 update_cnt++;
                 break;

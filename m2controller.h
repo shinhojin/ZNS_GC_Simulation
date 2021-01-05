@@ -1,6 +1,6 @@
-/* 2020. 09. 22
+/* 2020. 09. 22 - Date of initial creation
  * Creater : Gunhee Choi
- * Modifier : Hojin Shin
+ * Modifier : Hojin Shin 
  * This file is the M.2 ZNS SSD Contorller header
 */
 

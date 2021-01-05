@@ -1,4 +1,4 @@
-/* 2020. 11. 22
+/* 2020. 11. 22 - Date of initial creation
  * Creater : Myounghoon Oh
  * Modifier : Hojin Shin
  * This file is the U.3 ZNS SSD Contorller header
@@ -410,9 +410,6 @@ struct u3_nvme_id_ns {
 	struct u3_zone_format zonef[4]; //3776 + 64 == 3840
 	__u8			vs[256];//4096 byte
 	//4096 byte
-
-	//__u8			rsvd192[192];
-	//__u8			vs[3712];
 };
 
 struct u3_controller_identify{
@@ -428,7 +425,6 @@ struct u3_zns_info{
 
 	__u8			zfi;
 	__le16			ns_op_io_bound;
-	//__u8			ns_nvm_cap[16];
 	__le16			ns_pref_wr_gran;
 	__le16			ns_pref_wr_align;
 	__le16			ns_pref_dealloc_gran;
@@ -438,8 +434,6 @@ struct u3_zns_info{
 	__le32 max_active_res;
 	__le32 max_open_res;
 	unsigned int opened_zone_num;
-	//__u8	     max_append_size;
-	//struct nvme_lbaf	lbaf;
 	struct u3_zone_format zonef;
 
 	unsigned int max_zone_cnt;
@@ -514,14 +508,9 @@ void u3_zns_get_zone_desc(unsigned int partial, unsigned int option, unsigned in
 void u3_print_zone_desc(unsigned int total_zone);
 int u3_zns_write_request(void * write_data, __le16 nblocks, __le32 data_size, __u64 slba);
 int u3_zns_write(void * write_data, int data_size, int zone_number);
-//int zns_append(unsigned int zone_number, __u8 value);
 int u3_zns_read_request(void * read_data, int nblocks, __u64 slba);
 int u3_zns_read(void * read_data, int data_size, int zone_number, __u64 offset);
 int u3_zns_set_zone_change_notification();
-
-int u3_zns_get_async_event();
-int u3_zns_get_log(int fd, void * data, __u64 zid);
-int u3_check_completion_queue();
 
 extern struct u3_zone_descriptor *zone_desc_list;
 extern struct u3_zns_info *zns_info;

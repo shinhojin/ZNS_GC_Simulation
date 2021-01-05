@@ -1,4 +1,4 @@
-/* 2020. 09. 22
+/* 2020. 09. 22 - Date of initial creation
  * Creater : Gunhee Choi
  * Modifier : Hojin Shin
  * This file is the M.2 ZNS SSD Contorller realization
@@ -214,8 +214,6 @@ int m2_zns_write(struct m2_zns_share_info * zonelist, void * write_data, int dat
     else
         nblocks = data_size / 512;
     
-    //printf("nblocks : %d\n", nblocks);
-
     write_lba = m2_get_zone_to_slba(zonelist, zone_number) + offset;
 
     result = m2_zns_write_request(zonelist->fd, write_data, nblocks, write_lba);

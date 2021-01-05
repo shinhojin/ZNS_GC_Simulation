@@ -1,4 +1,4 @@
-/* 2020. 11. 22
+/* 2020. 11. 22 - Date of initial creation
  * Creater : Myounghoon Oh
  * Modifier : Hojin Shin
  * This file is the U.3 ZNS SSD Contorller realization
@@ -95,8 +95,6 @@ int u3_zns_get_info(char * dev)
 	zns_info -> ns_use = id_ns -> nuse;
 
 	zns_info -> ns_op_io_bound = id_ns -> noiob;
-	//for(int i = 0; i < 16; i++)
-	//	 zns_info -> ns_nvm_cap[i] = id_ns -> nvmcap[i];
 	zns_info -> ns_pref_wr_gran = id_ns -> npwg;
 	zns_info -> ns_pref_wr_align = id_ns -> npwa;
 	zns_info -> ns_pref_dealloc_gran = id_ns -> npdg;
@@ -106,17 +104,12 @@ int u3_zns_get_info(char * dev)
 	zns_info -> max_active_res = id_ns -> mar;
 	zns_info -> opened_zone_num = 0;
 	zns_info -> max_open_res = id_ns -> mor;
-	//zns_info -> max_append_size = id_ctrl -> zamds;
-	//zns_info -> lbaf = id_ns -> lbaf[0];
 	zns_info -> zfi = id_ns -> zfi;
 	zns_info -> zonef = id_ns -> zonef[id_ns -> zfi];
 
-	//printf("A\n");
-	//printf("%u\n",zns_info -> zonef.zsze);
 	zns_info -> max_zone_cnt = (zns_info -> ns_size)/(zns_info -> zonef.zsze);
 	zone_desc_list = (struct u3_zone_descriptor *)malloc(zns_info -> max_zone_cnt * sizeof(struct u3_zone_descriptor));
-	//printf("B\n");
-
+	
 	return 0;
 }
 
@@ -128,7 +121,6 @@ void u3_print_zns_info()
 	printf("Namespace Capacity\t: %u\n", zns_info -> ns_cap);
 	printf("Namespace Utilization\t: %u\n", zns_info -> ns_use);
 	printf("Namespace Optimal IO Boundary\t: %u\n", zns_info -> ns_op_io_bound);
-	//printf("NVM Capacity\t: %u\n", zns_info -> ns_nvm_cap);
 	printf("Namespace Preferred Write Gran\t: %u\n", zns_info -> ns_pref_wr_gran);
 	printf("Namespace Preferred Write Align\t: %u\n", zns_info -> ns_pref_wr_align);
 	printf("Namespace Preferred Dealloc Gran\t: %u\n", zns_info -> ns_pref_dealloc_gran);
@@ -139,7 +131,6 @@ void u3_print_zns_info()
 	printf("Namespace id - Zone Size\t: %u\n", zns_info -> zonef.zsze);
 	printf("Namespace id - Max Active Zones\t: %u\n", zns_info -> max_active_res);
 	printf("Namespace id - Max Open Zones\t: %u\n", zns_info -> max_open_res);
-	//printf("Controller id - Max Append Size\t: %#"PRIx8"\n", zns_info -> max_append_size);
 }
 
 int u3_zns_format()
@@ -314,7 +305,6 @@ void u3_zns_get_zone_desc(unsigned int partial, unsigned int option, unsigned in
 
 			temp = (__le64 *)buf;
 			report_zone_num = temp[0];
-			//printf("Init - reported zone count : %u\n", index);
 			real_max_zone_cnt += report_zone_num;
 
 			desc_buf = (struct u3_zone_descriptor *)buf;
@@ -326,7 +316,6 @@ void u3_zns_get_zone_desc(unsigned int partial, unsigned int option, unsigned in
 			free(buf);
 		}  
 		zns_info -> max_zone_cnt = real_max_zone_cnt;
-		//printf("Init - max_zone_cnt = %u\n", zns_info -> max_zone_cnt);
 	}
 	else
 	{
@@ -363,9 +352,6 @@ void u3_zns_get_zone_desc(unsigned int partial, unsigned int option, unsigned in
 void u3_print_zone_desc(unsigned int total_zone)
 {   
 	printf("ZNS SSD Zone Info\n");
-	//printf("%u\n", zns_info -> max_zone_cnt);
-	//for(int i = 0; i < 1; i++)
-	//for(int i = 0; i < zns_info -> max_zone_cnt; i++)
 	for(int i = 0; i < total_zone; i++)
 	{
 		printf("------------- Zone %u -------------\n", i);
@@ -524,16 +510,3 @@ int u3_zns_set_zone_change_notification()
 
 	return 0;
 }
-
-
-
-
-
-int zns_get_async_event()
-{}
-
-int zns_get_log(int fd, void * data, __u64 zid)
-{}
-
-int check_completion_queue()
-{}
